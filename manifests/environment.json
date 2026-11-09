@@ -1,0 +1,13 @@
+{
+  "status": "selected, not installed",
+  "verified_at": "2026-11-09",
+  "components": {
+    "ns-3": {"version": "3.48", "ref": "ns-3.48", "commit": "422ef9dc12d9bcd4ee8f4b1374dffcc029a3675c"},
+    "5g-lena-nr": {"version": "v5.1", "ref": "v5.1", "commit": "2fab8d9b8b5f823ab8a83495e4239b246182071b"},
+    "ns3-ai": {"version": "main (upstream-required interface)", "ref": "main", "commit": "b8c9858294b1d6a7f122b5154a3ce25057a54740"},
+    "ib-oran": {"version": "main (no release tag reported)", "ref": "main", "commit": "3ea5046389f0eb993cdf01ef6d6d33017e6921bb"}
+  },
+  "runtime": {"python": "3.11+ (3.11 selected for baseline)", "compiler": "GCC 11.1+ or Clang 17+", "cmake": "3.25+"},
+  "libraries": {"boost": "1.89+", "protobuf": "6.33.0+", "pybind11": "3.0+", "yaml-cpp": "required; upstream doc does not state a minimum"},
+  "legacy_stack_reuse": false
+}
