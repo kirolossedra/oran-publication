@@ -1,6 +1,6 @@
 # Mission 0 — O-RAN migration preparation
 
-**Status:** IN PROGRESS pending publication and verified retirement. Date: 2026-11-09.
+**Status:** COMPLETE. Date: 2026-11-09.
 
 ## Objective, rationale, scope
 
@@ -20,8 +20,25 @@ One gNB serves a latency-sensitive UE and multiple background UEs with increasin
 
 ## Changes and evidence
 
-This mission creates a separate repository scaffold, version manifest, governance, documentation, and decision records. It does not modify simulator protocol or source. Exact final included paths, commit IDs, removals, storage, and audit will be appended after remote verification. Reproduction of the documentation state: clone the repository at its published commit and inspect the manifest and reports; no simulator command exists yet.
+This mission created a separate repository scaffold, version manifest, governance, documentation, and decision records. It did not modify simulator protocol or source. The initial documentation commit is `4952d832af2d233a6c1ad5adef3e96a59256ef73`; the completed documentation/audit commit is recorded by the final remote `main` SHA. The historical archive update was pushed at `a9212edd9ecb17a12a3cd0ded6729e51210d8b19`. The project is reproducible as documentation by cloning `https://github.com/kirolossedra/oran-publication` at `main` and checking `manifests/environment.json`; no simulator command exists yet.
 
 ## Known limitations / unresolved
 
-No modern stack has been installed, compiled, or smoke-tested. Mobility is available in upstream ns-3/NR generally, but support in the chosen ib-ORAN scenario remains unverified. Build compatibility of the pinned complete source set remains to be tested. Mission completion requires successful publication and safe cleanup evidence.
+No modern stack has been installed, compiled, or smoke-tested. Mobility is available in upstream ns-3/NR generally, but support in the chosen ib-ORAN scenario remains unverified. Build compatibility of the pinned complete source set remains to be tested.
+
+## Publication and local retirement verification
+
+- Public project: `https://github.com/kirolossedra/oran-publication`; initial commit above, final `main` SHA recorded after this completion update is pushed.
+- Historical archive: `https://github.com/kirolossedra/nru-publication`; migration commit `a9212edd9ecb17a12a3cd0ded6729e51210d8b19` is confirmed on remote `main`.
+- Removed only the verified owned `/home/kiro/other-files/self-research/source/ns-3-dev` tree (3.2 GB measured before removal); free space rose from 17 GiB to 20 GiB. Retained local Mission 3 raw results (9.8 MB), other-project ns-3 trees, and shared packages.
+- Both project worktrees were clean and their local `main` matched remote `main` at verification; no force push or branch change was used.
+- The staged O-RAN tree contained only the 26 intended small text files; there were no source trees, build artifacts, credential patterns, or files above 10 MB. JSON and relative links validated; Mermaid syntax was not renderer-validated.
+
+## Completion checklist
+
+- [x] Separate repository and documentation structure published
+- [x] Archive status and migration report pushed to historical repository
+- [x] Legacy project-owned simulator tree retired after preservation verification
+- [x] Unrelated simulator trees and shared dependencies retained
+- [x] Version, host prerequisites, uncertainties, and no-install boundary documented
+- [x] Links, manifest, staged paths/sizes, and worktree synchronization verified

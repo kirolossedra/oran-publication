@@ -46,4 +46,4 @@ The upstream ib-ORAN installation instructions document ns-3.48, 5G-LENA v5.1, n
 
 ## Status and next step
 
-Migration preparation is documented and published. Before a first baseline, review pinned source revisions, provision Python 3.11 and missing compatible dependencies in an isolated layout, install/build only the supported stack, run upstream smoke tests, then select and validate one ib-ORAN scenario. No load sweep or resource-allocation comparison is authorized by this migration mission.
+Migration preparation is complete and published. The legacy project-owned simulator checkout/build was retired only after confirming its historical GitHub archive. Before a first baseline, review pinned source revisions, provision Python 3.11 and missing compatible dependencies in an isolated layout, install/build only the supported stack, run upstream smoke tests, then select and validate one ib-ORAN scenario. This migration did not install the simulator or start a load sweep/resource-allocation comparison.
