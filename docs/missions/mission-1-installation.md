@@ -1,6 +1,6 @@
 # Mission 1 — Install, build, and validate the 5G ib-ORAN baseline
 
-**Status:** IN PROGRESS — installation/build/run verified; publication pending. **Date:** 2026-11-09. **Branch:** main.
+**Status:** COMPLETE. **Date:** 2026-11-09. **Branch:** main.
 
 **Scope:** environment installation and one upstream baseline only.
 
@@ -156,4 +156,4 @@ Reproduction steps and command are in [installation documentation](../INSTALLATI
 - [x] Mermaid architecture and topology diagrams included
 - [x] README, compatibility/install docs, mission index and audit updated
 - [x] Reproduction commands, parameters, seed and results linked
-- [ ] Staged-content audit, commit, push to main and remote SHA verification
+- [x] Staged-content audit passed; mission commit `ed4d272be7e04f61083b1e748a7846bf20a6746a` was pushed to `main` and matched `git ls-remote` at publication time
