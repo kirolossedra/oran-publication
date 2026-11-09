@@ -1,0 +1,87 @@
+rat_type: NR
+common:
+  simTime: 20.0
+  simAreaLength: 500.0
+  ueNum: 6
+  xnbNum: 1
+  remoteHostNum: 1
+  handoverHysteresis: 3.0
+  handoverTimeToTrigger: 256.0
+  ueMinTxPower: -40.0
+  ueMaxTxPower: 23.0
+  xnbTxPower: 46.0
+  compensationFactor: 0.8
+  backhaulDataRate: 100Gbps
+  backhaulMtu: 1500
+  backhaulDelay: 10.0
+  enableDlFlow: true
+  dlTxRepeat: 1
+  dlPacketSize: 512
+  dlBitRate: 2000000
+  dlUseUdp: true
+  enableUlFlow: true
+  ulTxRepeat: 1
+  ulPacketSize: 512
+  ulBitRate: 1000000
+  ulUseUdp: true
+  enableIbOranSchedCoreLog: false
+  enableRrcLog: false
+  rngRun: 5
+lte:
+  dlEarfcn: 2750
+  ulEarfcn: 20750
+  dlRbNum: 100
+  ulRbNum: 100
+  transmissionMode: 2
+  p0NominalPusch: -96.0
+nr:
+  centralFrequency: 3500000000.0
+  bandwidth: 10000000.0
+  numCc: 1
+  numBwp: 1
+  numerology: 1
+  tddPattern: DL|DL|DL|DL|F|UL|UL|UL|UL|F|
+  gNbAntennaNumRows: 4
+  gNbAntennaNumColumns: 4
+  ueAntennaNumRows: 2
+  ueAntennaNumColumns: 2
+orchestrator:
+  k: 3
+  dapp_control_period_sf: 1
+  xapp_control_period_f: 1
+  dapp_algo_ue_selection: ibTopKCqi
+  xapp_algo_rbg_bounding: Bypass
+  dataset_id: toy
+  data_format: EMBEDDING
+  embedder: CLIP
+  oid_range:
+  - 4
+  - 5
+  save_dapp_log: true
+  save_learning_convg: false
+  verbose: true
+  learning_mode: online
+datasets:
+  toy:
+    repository: toy
+    input_image_format: .png
+    input_pattern: '%02d'
+    output_pattern: '%s_%d_ueidx_%d'
+    input_fields:
+    - object_id
+    output_fields:
+    - abbr
+    - object_id
+    - idx
+  market-1501:
+    repository: market-1501
+    input_image_format: .jpg
+    input_pattern: '%04d_c%d*'
+    output_pattern: '%s_%04d_c%d'
+    input_fields:
+    - object_id
+    - camera_id
+    output_fields:
+    - abbr
+    - object_id
+    - idx

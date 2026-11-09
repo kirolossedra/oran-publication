@@ -1,6 +1,6 @@
 # Simulator and O-RAN control architecture
 
-**Status:** conceptual, grounded in upstream ib-ORAN documentation; this project has not installed or run it.
+**Status:** conceptual overview. Mission 1 verified the actual runtime path for the selected baseline; see [executed baseline architecture](executed-baseline.md). This overview still does not claim an external RIC deployment or standardized interface interoperability.
 
 ns-3 is the discrete-event simulation framework. 5G-LENA's NR module supplies modeled NR radio access functions, including gNB/UE, scheduling, radio channels, and integration with ns-3 mobility. Orange ib-ORAN adds control application/agent abstractions. ns3-ai supplies an interface between simulator-side C++ and Python applications, documented by ib-ORAN as shared-memory communication. At a high level, control logic observes reported state/KPIs, calculates a resource policy, and returns control decisions to simulator-side agents.
 

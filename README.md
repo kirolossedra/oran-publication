@@ -1,49 +1,37 @@
 # O-RAN Based 5G RAN Performance and Resource Allocation
 
-This independent research project studies latency, throughput, reliability, and resource allocation in a simulated 5G RAN with an O-RAN-inspired control loop. It is a new repository and isolated simulator environment; the earlier [NR-U/Wi-Fi coexistence project](https://github.com/kirolossedra/nru-publication) remains a historical archive.
+This independent research project uses a separately pinned ns-3/5G-LENA/ib-ORAN environment to study RAN scheduling, latency, throughput, reliability, and resource allocation. The historical [NR-U/Wi-Fi project](https://github.com/kirolossedra/nru-publication) remains an archive; no legacy source, libraries, or patches are reused here.
 
-## Research question
+## Research question and motivation
 
-How do baseline and modified RAN resource-allocation policies affect a latency-sensitive UE and competing UEs as background uplink/downlink load increases?
+How do baseline and modified RAN resource-allocation policies affect a latency-sensitive UE and competing UEs as background uplink and downlink traffic increases? A 5G RAN has finite radio resources that its scheduler allocates among UEs with different channel and traffic conditions. The work emphasizes wireless-system modeling and controlled simulation, rather than constructing an elaborate external RIC.
 
-The first proposed topology is one gNB, one latency-sensitive UE, and several background UEs. Planned outcomes include mean/P95/P99 packet latency, UL/DL achieved throughput, packet loss, PRB allocation/utilization, and effects on competing UEs. Offered traffic, delivered traffic, and radio resource allocation will be reported separately. UE mobility is an optional extension, subject to validation of upstream model behavior.
+The intended first research scenario has one gNB, one latency-sensitive UE, and several background UEs. Planned outcomes include mean/P95/P99 packet latency, UL/DL throughput, packet loss, PRB use, and the effect on competing UEs. Offered traffic, delivered traffic, and radio allocation will be reported separately. Mobility is optional and requires validation before use.
 
-## Motivation and scope
+## Current state
 
-5G RAN scheduling allocates finite radio resources among flows with different channel conditions and traffic demands. ib-ORAN couples ns-3/5G-LENA simulation with control applications that can implement resource-allocation policies. This project emphasizes wireless-system and RAN behavior, not construction of a production external RIC. Control-loop functionality and any standardized-interface claims will be verified against source and documented narrowly.
+Mission 1 installed and built the pinned upstream stack and completed one upstream NR toy-workload smoke baseline. The run establishes environment and control-loop operation only. It is **not** the proposed latency-under-load experiment: upstream workload sends/receives image/embedding payloads, the run is a single seed, and standard outputs expose aggregate mean latency rather than packet-level tail latency. No research allocation policy or custom load scenario has been implemented.
 
-## Architecture (planned, upstream-supported components)
+The tested baseline is ns-3.48 + 5G-LENA NR v5.1 + ns3-ai + Orange ib-ORAN, with Python 3.12.3. Exact source commits, local dependency versions, and run identity are in [the environment manifest](manifests/environment.json), with [Python package pins](manifests/python-environment-lock.txt) and a [linux-64 C++ package lock](manifests/cpp-environment-lock.txt). Source trees, virtual environment, build products, model cache, full logs, and run directories stay in ignored `simulator/`.
 
-```mermaid
-flowchart LR
-  Sim[ns-3.48 discrete-event simulator] --> NR[5G-LENA NR v5.1]
-  Sim --> AI[ns3-ai shared-memory bridge]
-  NR --> PHY[5G radio, scheduler, channel and mobility models]
-  AI --> DA[ib-ORAN dApp / xApp agents]
-  DA --> CTRL[Scheduling decisions and control messages]
-  CTRL --> NR
-  NR --> KPI[Packet and RAN KPI collection]
-  KPI --> Data[Raw run data and analyzed figures]
-```
+## Architecture
 
-This is a conceptual architecture from upstream project documentation; it does not assert that this repository has installed or run those components. See [architecture](docs/architecture/simulator-and-control.md) and [scenario topology](docs/architecture/initial-scenario.md).
+The actual executed control path is diagrammed in [the runtime architecture report](docs/architecture/executed-baseline.md). The planned research topology and methodology remain documented separately. In this baseline, ns-3 runs NR radio/network events; 5G-LENA provides NR gNB/UE and MAC scheduling; ib-ORAN C++ agents communicate over the ns3-ai shared-memory interface with Python xApp/dApp schedulers; KPI and payload outputs are collected by the upstream runner.
 
-## Selected software baseline
+## Documentation index
 
-The upstream ib-ORAN installation instructions document ns-3.48, 5G-LENA v5.1, ns3-ai `main`, and Python 3.11+. Exact source tags/commits and dependency minimums are in [compatibility](docs/COMPATIBILITY.md) and [manifest](manifests/environment.json). At migration time, this project is documentation-only: simulator sources have not been downloaded, dependencies have not been changed, and no O-RAN simulation has run.
-
-## Repository navigation
-
-- [Compatibility and version rationale](docs/COMPATIBILITY.md)
-- [Installation and reproducibility plan](docs/INSTALLATION.md)
+- [Compatibility and exact pins](docs/COMPATIBILITY.md)
+- [Installation and reproducibility record](docs/INSTALLATION.md)
+- [Executed baseline architecture and source map](docs/architecture/executed-baseline.md)
 - [Architecture and control boundary](docs/architecture/simulator-and-control.md)
-- [Initial scenario](docs/architecture/initial-scenario.md)
-- [Proposed methodology](docs/methodology/proposed-study.md)
-- [Mission index](docs/MISSIONS.md)
+- [Initial research scenario](docs/architecture/initial-scenario.md)
+- [Proposed study methodology](docs/methodology/proposed-study.md)
+- [Mission history](docs/MISSIONS.md)
+- [Mission 1 installation report](docs/missions/mission-1-installation.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation audit](docs/DOCUMENTATION-AUDIT.md)
-- [Mission template](templates/MISSION-TEMPLATE.md)
+- [Governance](AGENTS.md) · [mission template](templates/MISSION-TEMPLATE.md)
 
-## Status and next step
+## Next step
 
-Migration preparation is complete and published. The legacy project-owned simulator checkout/build was retired only after confirming its historical GitHub archive. Before a first baseline, review pinned source revisions, provision Python 3.11 and missing compatible dependencies in an isolated layout, install/build only the supported stack, run upstream smoke tests, then select and validate one ib-ORAN scenario. This migration did not install the simulator or start a load sweep/resource-allocation comparison.
+The next mission should define and validate application traffic appropriate to the latency-sensitive UE and competing background UEs, instrument packet-level delay and per-UE resource outcomes, and document a controlled pilot protocol before conducting any load-policy comparison.

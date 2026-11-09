@@ -1,6 +1,6 @@
 # Proposed experimental methodology
 
-This is a proposal, not an executed protocol. The migration mission does not select numeric traffic rates or report performance results.
+This is a proposal, not an executed protocol. Mission 1 validated the upstream toy workload and installation only; its smoke-test values are documented in [the Mission 1 report](../missions/mission-1-installation.md), and are not measurements from the proposed latency-sensitive/background-UE scenario. No load/policy experiment has been conducted.
 
 ## Question and outcomes
 

@@ -1,11 +1,16 @@
 # Documentation index
 
 - [Compatibility](COMPATIBILITY.md)
+- [Environment and source manifest](../manifests/environment.json)
+- [Python dependency lock](../manifests/python-environment-lock.txt) · [linux-64 C++ lock](../manifests/cpp-environment-lock.txt)
 - [Installation plan](INSTALLATION.md)
-- [Architecture](architecture/simulator-and-control.md)
+- [Architecture and control boundary](architecture/simulator-and-control.md)
+- [Executed Mission 1 baseline architecture and source map](architecture/executed-baseline.md)
 - [Initial scenario](architecture/initial-scenario.md)
 - [Proposed methodology](methodology/proposed-study.md)
 - [Mission history](MISSIONS.md)
 - [Decision records](decisions/README.md)
 - [Documentation audit](DOCUMENTATION-AUDIT.md)
 - [Mission 0 report](missions/mission-0-migration.md)
+- [Mission 1 report](missions/mission-1-installation.md)
+- [Mission 1 curated KPI/config evidence](../results/mission1-nr-baseline/README.md)

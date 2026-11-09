@@ -1,18 +1,18 @@
 # Version compatibility and environment boundary
 
-**Status:** source-verified upstream pins, selected but not installed. Checked 2026-11-09.
+**Status:** pinned stack installed, built, and exercised by one upstream NR smoke baseline. Checked 2026-11-09.
 
 ## Selected compatible combination
 
 | Component | Pin | Commit | Evidence / role |
 |---|---|---|---|
-| ns-3 | 3.48 tag | `422ef9dc12d9bcd4ee8f4b1374dffcc029a3675c` | ib-ORAN install guide explicitly documents 3.48 |
-| 5G-LENA NR | v5.1 tag | `2fab8d9b8b5f823ab8a83495e4239b246182071b` | ib-ORAN guide uses v5.1; CTTC release pairs it with ns-3.48 |
+| ns-3 | 3.48 tag | tag object `422ef9dc12d9bcd4ee8f4b1374dffcc029a3675c`; peeled source commit `d2add90b452d600cfb4859baed8e9ea633519447` | ib-ORAN install guide explicitly documents 3.48 |
+| 5G-LENA NR | v5.1 tag | tag object `2fab8d9b8b5f823ab8a83495e4239b246182071b`; peeled source commit `cedceadda17392c90587fb9400eb9b1f8c236713` | ib-ORAN guide uses v5.1; CTTC release pairs it with ns-3.48 |
 | ns3-ai | `main` | `b8c9858294b1d6a7f122b5154a3ce25057a54740` | ib-ORAN requires newer message interface; upstream says tags 1.0–1.2 predate it |
 | Orange ib-ORAN | `main` | `3ea5046389f0eb993cdf01ef6d6d33017e6921bb` | current upstream commit; upstream repository has no release tag in the checked tag list |
-| Python | 3.11+ | runtime pin to record at install | upstream documented minimum |
+| Python | 3.12.3 | host interpreter used in local venv | upstream documented minimum is 3.11+; no Python 3.11 install was needed |
 
-Exact manifest is [here](../manifests/environment.json). Pinning a moving branch by commit makes the chosen snapshot reproducible; update only through a documented compatibility review.
+Exact manifest is [here](../manifests/environment.json). The first two identifiers above are annotated tag-object hashes, not commit IDs; the peeled source commit is listed separately. Pin moving branches by commit and tags by both tag object and peeled commit; update only through a documented compatibility review.
 
 ## Legacy environment being retired
 
@@ -24,11 +24,15 @@ As of the check date, ns-3.49 had been released, but the ib-ORAN tested instruct
 
 ## Dependencies and host audit
 
-ib-ORAN installation documentation lists Python 3.11+, GCC 11.1+ or Clang 17+, CMake 3.25+, Boost 1.89+, Protobuf 6.33.0+, pybind11 3.0+, and yaml-cpp discoverable by CMake. Host audit found Python 3.12.3, CMake 3.28.3, GCC 13.3.0, Boost 1.83.0, pybind11-dev 2.11.1, yaml-cpp 0.8; Python 3.11, protobuf development/compiler packages were not found. Thus Boost, pybind11, Python interpreter selection, and protobuf need resolution before installation. No packages were removed or installed in this migration.
+ib-ORAN installation documentation lists Python 3.11+, GCC 11.1+ or Clang 17+, CMake 3.25+, Boost 1.89+, Protobuf 6.33.0+, pybind11 3.0+, and yaml-cpp discoverable by CMake. Host versions were Python 3.12.3, CMake 3.28.3, GCC 13.3.0, Boost 1.83.0, pybind11-dev 2.11.1, yaml-cpp 0.8; protobuf C++ development/compiler were absent. The build used local Boost 1.89.0, Protobuf 6.33.5 (protoc 33.5), pybind11 3.1.0, and yaml-cpp 0.8. Python used project-local CPU Torch 2.9.1+cpu, torchvision 0.24.1+cpu, and Protobuf 6.33.5. No system packages were changed. Full local Python freeze and install logs are under ignored `simulator/logs/`.
+
+## Runtime verification
+
+The NR executable built successfully with the pinned combination; the Python binding imported successfully; one official toy-workload NR run completed with exit status 0. Exact configuration and KPI evidence are in [Mission 1 report](missions/mission-1-installation.md) and the [curated baseline result](../results/mission1-nr-baseline/README.md). This validates this host/build/run combination, not all host configurations or production RIC interoperability.
 
 ## Mobility and uncertainties
 
-5G-LENA v5.1 provides ns-3 mobility integration and handover-related capabilities upstream. That does not establish mobility was exercised by ib-ORAN's specific agents or scenario. Verify by source inspection and a focused test before using UE motion. The selected branch snapshots may advance; reproduce using the commits above. Upstream-supported status is not equivalent to independent build verification.
+5G-LENA v5.1 provides ns-3 mobility integration and handover-related capabilities upstream. The pinned ib-ORAN NR scenario calls `SetupFronthaulMobility` and installs `RandomWalk2dMobilityModel` for UEs (0.83 m/s, direction change after 100 m, random initial positions). This is source-confirmed and configured in the baseline; no dedicated mobility validation or controlled fixed-topology comparison was performed. The selected branch snapshots may advance; reproduce using the commits above. Mission 1 verified build/runtime compatibility for this selected snapshot only.
 
 ## Environment boundary
 
