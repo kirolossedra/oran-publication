@@ -79,6 +79,7 @@ Initial obstacle: expected ignored simulator tree absent. Downloaded all four ex
 - No experiment results or source patches; no claim of G1 feasibility at runtime or research novelty.
 - Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes): no credential-pattern matches, binary/generated artifacts, simulator source/build tree, or unrelated paths.
 - Local audit commit `36d11a44c023ef7ce5e24a8bfc78576516bdc0c0` was created on `main`. Its push failed because Git could not read a GitHub username. GitHub API verified remote `main` remained `39d37ebfca594bb59640477484f0fbb476f998f0`; this documentation is therefore local only. A status comment was added to issue #14.
+- Follow-up documentation commit `60a3a23c3336b41b844e664e12922a3fea4067e0` records the restored pins and researcher decisions. Its push attempt failed with the same missing GitHub username; `origin/main` still tracks `39d37ebfca594bb59640477484f0fbb476f998f0`.
 
 ## Unresolved questions and next steps
 

@@ -33,7 +33,7 @@
 ### Documentation and delivery state
 
 - Report, matrix, options and architecture diagram are linked from root README, docs README and mission index.
-- This follow-up staged-set audit passed for five Markdown paths (33,941 bytes before this audit note); no credential-pattern matches, generated artifacts, binaries, simulator sources/builds, or unrelated paths were staged. Simulator sources, venvs, dependency caches, build products, and logs remain ignored. Local `main` is two commits ahead of remote `main`; push previously failed because Git could not read a GitHub username. Researcher choices and the remaining runtime gate are listed in the report and technical-options doc.
+- The main documentation update passed staged-set checks for five Markdown paths (33,941 bytes before that audit note). The follow-up status update passed staged-set checks for two Markdown paths (23,731 bytes before this audit note). Neither set contained credential-pattern matches, generated artifacts, binaries, simulator sources/builds, or unrelated paths. Simulator sources, venvs, dependency caches, build products, and logs remain ignored. Progress commits remain local because `git push origin main` failed with `could not read Username for 'https://github.com'`; the local `origin/main` tracking ref is still `39d37ebfca594bb59640477484f0fbb476f998f0`. Researcher choices and the remaining runtime gate are listed in the report and technical-options doc.
 
 ## Mission 1 evidence checked
 
