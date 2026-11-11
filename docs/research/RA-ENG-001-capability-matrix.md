@@ -1,6 +1,6 @@
 # RA-ENG-001 capability matrix
 
-**Audit updated:** 2026-11-12. **Source pins:** ns-3 `d2add90b452d600cfb4859baed8e9ea633519447`; NR v5.1 `cedceadda17392c90587fb9400eb9b1f8c236713`; ib-ORAN `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`. All four pinned repositories were later restored under ignored `simulator/`; the NR target and Python bridge build. An isolated six-UE C++ probe observed whole-cell LOS/NLOS helper behavior and repeatable positions for seed/run 1. The exact CPU Torch wheel retry on 2026-11-12 failed DNS resolution, so the full Python-controlled ib-ORAN scenario remains unverified.
+**Audit updated:** 2026-11-12. **Source pins:** ns-3 `d2add90b452d600cfb4859baed8e9ea633519447`; NR v5.1 `cedceadda17392c90587fb9400eb9b1f8c236713`; ib-ORAN `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`. All four pinned repositories were later restored under ignored `simulator/`; the NR target and Python bridge build. An isolated six-UE C++ probe observed whole-cell LOS/NLOS helper behavior and repeatable positions for seed/run 1. Direct-wheel and official-index CPU Torch downloads failed DNS resolution on 2026-11-12, so the full Python-controlled ib-ORAN scenario remains unverified.
 
 Status meanings: **DIRECT** is already exposed in the pinned code; **SMALL PATCH** is a bounded implementation path identified from source but still needs a probe; **UNKNOWN** needs local/runtime or further pinned-source evidence; **NOT PRESENT** is absent from the current scenario/output path.
 
