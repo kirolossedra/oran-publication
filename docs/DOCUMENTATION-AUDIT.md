@@ -1,10 +1,10 @@
 # Documentation audit
 
-**Last updated:** 2026-11-11. **Status:** historical migration audit retained; Mission 1 installation/build/baseline audit added; current RA-ENG-001 source audit appended below.
+**Last updated:** 2026-11-12. **Status:** historical migration audit retained; Mission 1 installation/build/baseline audit added; current RA-ENG-001 source audit appended below.
 
 ## RA-ENG-001 source feasibility audit
 
-**Audit date:** 2026-11-11. **Status:** documentation updated; mission remains **INCOMPLETE** because full-scenario, grant, traffic and packet-tail evidence remain outstanding. The exact pinned source tree and C++ build are restored under ignored `simulator/`.
+**Audit date:** 2026-11-12. **Status:** documentation updated; mission remains **INCOMPLETE** because Python-runner, grant, traffic and packet-tail evidence remain outstanding. The exact pinned source tree and C++ build are restored under ignored `simulator/`.
 
 ### Evidence checked
 
@@ -29,6 +29,11 @@
 - Docker CLI 29.4.1 is present, but socket access is denied; Podman and `/dev/kvm` are absent; `ip` cannot inspect netlink in this session.
 - **OBSERVED:** `nr-channel-setup-test`, `mobility-trace`, and `three-gpp-propagation-loss-model` passed. An isolated C++ probe queried all six gNB↔UE pairs and observed six LOS results with the LOS helper and six NLOS results with the NLOS helper. Two separate seed 1/run 1 probe invocations produced identical UE positions at 0, 60 and 130 seconds. The probe is not the full ib-ORAN environment and does not verify its RNG stream ordering. No full-scenario execution, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 campaign results are not new results from this audit.
 - No tracked upstream source or configuration file was modified and no research outcome dataset was generated. The ignored local scratch probe and two stdout logs are preserved under `simulator/`; the ignored local CMake cache was temporarily set to `NS3_EXAMPLES=OFF` for target construction, then restored to `NS3_EXAMPLES=ON`. The researcher selected whole-cell LOS/NLOS and mobility. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
+- The continuation audit refreshed the report and matrix with per-factor `GO` / `CONDITIONAL` / `BLOCKED` verdicts, exact pinned `ConstantVelocity` / `Waypoint` options, UE-to-EPC-to-NR application path, and a recommended nearest-rank estimator with per-cell sample counts for later packet tails. These are source-backed engineering recommendations, not a selected scientific protocol.
+- A 2026-11-12 retry of the exact pinned CPU Torch wheel URLs failed DNS resolution in both sandboxed and escalated attempts. The retry's complete pip output is retained in ignored `simulator/logs/RA-ENG-001-restore-20261112/torch-cpu-wheel-retry.log`; no package substitution was made and the Python-controlled scenario remains unverified.
+- Markdown validation checked 60 local links across the root README, docs navigation, mission report, matrix, technical options, and architecture diagram; all local targets exist. `git diff --check` passed. The probe source and two stdout logs remain ignored; this continuation stages documentation only.
+- The prior continuation stage contained seven Markdown paths (71,313 bytes total; largest file 22,057 bytes). The set had no credential-pattern matches, binary/generated files, simulator/source/build paths, or unrelated files.
+- The 2026-11-12 retry/documentation stage contains seven Markdown paths (72,354 bytes total; largest file 22,128 bytes). Staged-path inspection found no credential-pattern matches, non-Markdown/generated artifacts, simulator/source/build paths, or unrelated files; `git diff --cached --check` passed. The retry log remains ignored and local.
 
 ### Documentation and delivery state
 

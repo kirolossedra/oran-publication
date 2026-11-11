@@ -1,8 +1,8 @@
 # RA-ENG-001 source-grounded signal path
 
-**Status:** source inspection only. **Pin:** ib-ORAN `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`, NR v5.1 `cedceadda17392c90587fb9400eb9b1f8c236713`, ns-3 `d2add90b452d600cfb4859baed8e9ea633519447`.
+**Status:** source-traced architecture with isolated probe evidence for whole-cell condition and mobility repeatability. **Pin:** ib-ORAN `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`, NR v5.1 `cedceadda17392c90587fb9400eb9b1f8c236713`, ns-3 `d2add90b452d600cfb4859baed8e9ea633519447`.
 
-The solid arrows show source-traced interfaces in the pinned code. Dashed arrows show proposed diagnostics or source/configuration changes; they were not implemented or run. This is a simulator architecture, not a deployed RAN or validated industrial channel.
+The solid arrows show source-traced interfaces in the pinned code. Dashed arrows show proposed diagnostics or source/configuration changes; they were not implemented. The isolated probe observed all six helper link conditions under forced LOS/NLOS and identical position samples at 0, 60 and 130 s across two seed 1/run 1 invocations. It did not execute the Python-controlled ib-ORAN scenario, measure propagation or verify scenario RNG ordering. This is a simulator architecture, not a deployed RAN or validated industrial channel.
 
 ```mermaid
 flowchart LR
@@ -56,4 +56,4 @@ flowchart LR
 - Interface fields are declared in [`iboran-shm-structure.h`](https://github.com/Orange-OpenSource/ns3-iboran/blob/3ea5046389f0eb993cdf01ef6d6d33017e6921bb/model/iboran_interfaces/iboran-shm-structure.h#L44); NR MAC applies bounds and dApp grants in [`iboran-nr-mac-scheduler.cc`](https://github.com/Orange-OpenSource/ns3-iboran/blob/3ea5046389f0eb993cdf01ef6d6d33017e6921bb/model/iboran_mac_scheduler/iboran-nr-mac-scheduler.cc#L473).
 - FlowMonitor computes aggregate means and cleanup removes its temporary XML in [`iboran_orchestrator.py`](https://github.com/Orange-OpenSource/ns3-iboran/blob/3ea5046389f0eb993cdf01ef6d6d33017e6921bb/model/iboran_campaign/iboran_orchestrator.py#L476).
 
-**Observed limitation:** the source code and old Mission 1 documentation describe the previous successful baseline, but the ignored simulator source/build and its run logs are absent from the current workspace. No run-level telemetry is inferred from this diagram.
+**Observed limitation:** the pinned simulator source/build and isolated probe logs are present locally under ignored `simulator/`. Pinned CPU Torch wheels are unavailable, so the Python-controlled full scenario was not run. No grant, traffic, or packet-tail telemetry is inferred from this diagram.
