@@ -28,10 +28,12 @@ The actual executed control path is diagrammed in [the runtime architecture repo
 - [Proposed study methodology](docs/methodology/proposed-study.md)
 - [Mission history](docs/MISSIONS.md)
 - [Mission 1 installation report](docs/missions/mission-1-installation.md)
+- [RA-ENG-001 feasibility audit](docs/missions/RA-ENG-001-feasibility.md) · [capability matrix](docs/research/RA-ENG-001-capability-matrix.md) · [technical options](docs/research/RA-ENG-001-technical-options.md)
+- [RA-ENG-001 signal-path diagram](docs/architecture/RA-ENG-001-signal-path.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation audit](docs/DOCUMENTATION-AUDIT.md)
 - [Governance](AGENTS.md) · [mission template](templates/MISSION-TEMPLATE.md)
 
 ## Next step
 
-The next mission should define and validate application traffic appropriate to the latency-sensitive UE and competing background UEs, instrument packet-level delay and per-UE resource outcomes, and document a controlled pilot protocol before conducting any load-policy comparison.
+The source-level RA-ENG-001 audit finds a direct whole-cell LOS/NLOS switch and a plausible per-UE building-geometry route, but the latter has not been probed. It also finds that the default 3GPP channel-condition and small-scale channel update periods are zero, and current offered rates are shared across UEs. The local pinned simulator tree is absent, so no new runtime evidence was produced. Continue only after restoring/providing that environment and resolving the researcher gates recorded in [RA-ENG-001](docs/missions/RA-ENG-001-feasibility.md): selective target-link versus whole-cell channel scope, and mobile versus fixed primary positions.

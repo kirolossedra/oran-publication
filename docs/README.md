@@ -14,3 +14,5 @@
 - [Mission 0 report](missions/mission-0-migration.md)
 - [Mission 1 report](missions/mission-1-installation.md)
 - [Mission 1 curated KPI/config evidence](../results/mission1-nr-baseline/README.md)
+- [RA-ENG-001 feasibility report](missions/RA-ENG-001-feasibility.md)
+- [RA-ENG-001 capability matrix](research/RA-ENG-001-capability-matrix.md) · [technical options](research/RA-ENG-001-technical-options.md) · [source-grounded signal path](architecture/RA-ENG-001-signal-path.md)
