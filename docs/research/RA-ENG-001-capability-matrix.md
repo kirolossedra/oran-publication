@@ -58,7 +58,7 @@ For a transparent later estimator, use nearest-rank empirical quantiles, rank `c
 
 | Item | Observed state / consequence |
 |---|---|
-| Branch and repo | Local `main`; remote `main` remains at `39d37ebfca594bb59640477484f0fbb476f998f0`. DNS-over-TLS now resolves GitHub, but the saved GitHub CLI token is invalid; device sign-in is pending. No branch switch or remote rewrite was attempted. |
+| Branch and repo | Local and remote `main` match at `89b5c1bb2116bd8154a6387fdd9ab93164e96acf` after a fast-forward push of the ten local commits on 2026-11-12. `git ls-remote` verified the remote SHA; the worktree was clean. |
 | Pins | All four exact source revisions in [`manifests/environment.json`](../../manifests/environment.json) were cloned and matched with `git rev-parse HEAD`: ns-3 `d2add90b452d600cfb4859baed8e9ea633519447`, NR `cedceadda17392c90587fb9400eb9b1f8c236713`, ns3-ai `b8c9858294b1d6a7f122b5154a3ce25057a54740`, ib-ORAN `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`. |
 | Local simulator/build | Present under ignored `simulator/`; C++ environment restored, `ns3iboran_nr`, protobuf objects, and Python bridge built. Python 3.12.3 venv has the frozen packages except pinned `torch==2.9.1+cpu` and `torchvision==0.24.1+cpu`; DNS now resolves, but official-index and CDN HTTPS requests time out. |
 | Host and resources | Ubuntu 24.04.4 x86_64; 20 logical CPUs; 30 GiB RAM, 24 GiB available; 501 GiB free after restoration; Python 3.14.3 system and Python 3.12.3 available; GCC 13.3.0, CMake 3.28.3, Ninja and Conda. Docker command exists but daemon socket access is denied; no Podman or `/dev/kvm`; netlink inspection is denied. |

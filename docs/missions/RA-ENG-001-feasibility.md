@@ -107,10 +107,12 @@ Initial obstacle: expected ignored simulator tree absent. Downloaded all four ex
 - The 2026-11-12 staged documentation audit covered seven Markdown paths (72,354 bytes total; largest file 22,128 bytes), with no credential-pattern matches, generated files, or upstream source/build paths; Markdown links and staged whitespace checks passed.
 - The follow-up official-index retry stage covered three Markdown paths (55,276 bytes total; largest file 22,148 bytes). The files are documentation only; local links and staged whitespace checks passed, and credential/source-tree scans were clean.
 - The 2026-11-12 DNS/download/auth follow-up covered four Markdown paths (64,811 bytes total; largest file 22,166 bytes); fifteen local links resolved and staged whitespace, credential, file-type, size and upstream-tree checks passed.
+- The push-verification documentation stage covered three Markdown paths (57,806 bytes total; largest file 22,136 bytes); thirteen local links resolved and staged path, credential and whitespace checks passed.
 - Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes): no credential-pattern matches, binary/generated artifacts, simulator source/build tree, or unrelated paths.
 - Local audit commit `36d11a44c023ef7ce5e24a8bfc78576516bdc0c0` was created on `main`. Its push failed because Git could not read a GitHub username. GitHub API verified remote `main` remained `39d37ebfca594bb59640477484f0fbb476f998f0`; this documentation is therefore local only. A status comment was added to issue #14.
 - Follow-up documentation commit `60a3a23c3336b41b844e664e12922a3fea4067e0` records the restored pins and researcher decisions. Its push attempt failed with the same missing GitHub username; `origin/main` still tracks `39d37ebfca594bb59640477484f0fbb476f998f0`.
 - Local probe-documentation commit `cf9dca0` records the six-link and repeated-mobility outputs. Its push attempt failed with the same credential error; GitHub history still showed remote `main` at `39d37ebfca594bb59640477484f0fbb476f998f0`.
+- On 2026-11-12, after GitHub device sign-in and credential-helper setup, the ten local RA-ENG-001 commits were pushed as a fast-forward. `git ls-remote origin refs/heads/main` and local `HEAD` both returned `89b5c1bb2116bd8154a6387fdd9ab93164e96acf`; the worktree was clean. This batch includes the previously local audit, restore, and probe commits listed above.
 
 ## Unresolved questions and next steps
 
@@ -125,4 +127,4 @@ The source-backed F1–F6 inspection is documented and the researcher selected w
 - [x] Paths, claims, parameters, and reproduction commands checked
 - [x] Staged file/size/secret/source-tree audit passed
 - [x] Local commit created on `main`; remote head checked before and after push attempt
-- [ ] Push to `main` completed and remote SHA matches local (DNS now works via temporary DNS-over-TLS; `gh` has an invalid saved token and device sign-in is awaiting user completion)
+- [x] Push to `main` completed and remote SHA verified as `89b5c1bb2116bd8154a6387fdd9ab93164e96acf`; local `HEAD` matched and worktree was clean
