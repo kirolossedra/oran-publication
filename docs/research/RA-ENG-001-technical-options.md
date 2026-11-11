@@ -40,6 +40,6 @@ The risk labels describe integration surface and dependencies, not delivery-time
 
 1. Use a **whole-cell LOS/NLOS** comparison.
 2. Use **mobility** in the primary setup, retaining the upstream `RandomWalk2d`; an isolated same-seed probe passed, while scenario-level stream repeatability remains unverified.
-3. Restore the exact pinned simulator under ignored `simulator/`. The four source commits match `manifests/environment.json`; the C++ target and bridge binding build succeeded. The locked CPU Torch wheels remain unavailable because the PyTorch CPU index and alternate CDN did not resolve.
+3. Restore the exact pinned simulator under ignored `simulator/`. The four source commits match `manifests/environment.json`; the C++ target and bridge binding build succeeded. The locked CPU Torch wheels remain unavailable: temporary DNS-over-TLS resolves the hosts, but the official index and alternate CDN time out over HTTPS.
 
 The primary-literature novelty decision and full experimental protocol remain separate human-owned gates. The source feasibility verdict authorizes only bounded probes; it does not establish the final campaign protocol.
