@@ -33,7 +33,7 @@
 ### Documentation and delivery state
 
 - Report, matrix, options and architecture diagram are linked from root README, docs README and mission index.
-- Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes); no credential-pattern match, generated artifact, binary, or upstream source/build tree is staged. Commit, push and remote SHA verification remain pending. Researcher decision gates are listed in the report and technical-options doc.
+- Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes); no credential-pattern match, generated artifact, binary, or upstream source/build tree is staged. Local commit `36d11a44c023ef7ce5e24a8bfc78576516bdc0c0` was created; push failed because Git could not read a GitHub username. GitHub API checked remote `main` before and after the push attempt and confirmed it remains at `39d37ebfca594bb59640477484f0fbb476f998f0`. Researcher decision gates are listed in the report and technical-options doc.
 
 ## Mission 1 evidence checked
 

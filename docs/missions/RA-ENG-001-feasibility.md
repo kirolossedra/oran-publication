@@ -78,6 +78,7 @@ Initial obstacle: expected ignored simulator tree absent. Exact pinned source in
 - Project navigation and documentation audit updated for this incomplete mission.
 - No experiment results or source patches; no claim of G1 feasibility at runtime or research novelty.
 - Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes): no credential-pattern matches, binary/generated artifacts, simulator source/build tree, or unrelated paths.
+- Local audit commit `36d11a44c023ef7ce5e24a8bfc78576516bdc0c0` was created on `main`. Its push failed because Git could not read a GitHub username. GitHub API verified remote `main` remained `39d37ebfca594bb59640477484f0fbb476f998f0`; this documentation is therefore local only. A status comment was added to issue #14.
 
 ## Unresolved questions and next steps
 
@@ -91,4 +92,5 @@ The source-backed F1–F6 inspection is documented. The outstanding work is runt
 - [x] README, mission index, and audit updated
 - [x] Paths, claims, parameters, and reproduction commands checked
 - [x] Staged file/size/secret/source-tree audit passed
-- [ ] Commit created and pushed to `main`; remote SHA verified
+- [x] Local commit created on `main`; remote head checked before and after push attempt
+- [ ] Push to `main` completed and remote SHA matches local (blocked: GitHub username unavailable to Git)
