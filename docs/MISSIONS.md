@@ -2,6 +2,6 @@
 
 - [Mission 0 — O-RAN migration preparation](missions/mission-0-migration.md): environment audit, version selection, isolated project preparation, and legacy preservation/retirement. Status is updated after publication and cleanup verification.
 - [Mission 1 — Install and validate the ib-ORAN NR baseline](missions/mission-1-installation.md): complete; pinned stack installed and built, upstream NR toy baseline ran successfully, Python control loop and outputs verified.
-- [RA-ENG-001 — G1 source feasibility audit](missions/RA-ENG-001-feasibility.md): **INCOMPLETE**; pinned source inspection documented for LOS/NLOS, mobility, scheduler, traffic and packet measurement. The current workspace lacks the ignored simulator/build, so runtime probes and local pin verification are unavailable. Awaiting researcher decisions on selective-link versus whole-cell LOS/NLOS and primary mobility versus fixed positions before RA-ENG-002.
+- [RA-ENG-001 — G1 source feasibility audit](missions/RA-ENG-001-feasibility.md): **INCOMPLETE**; all four pinned sources are restored and the NR target plus Python bridge bindings build successfully. The researcher selected whole-cell LOS/NLOS with mobility. Bounded runtime, applied-grant, traffic, and packet-tail evidence remains outstanding; the pinned CPU Torch wheels were unavailable from the configured index.
 
 Future work must use the [mission template](../templates/MISSION-TEMPLATE.md) and follow [AGENTS.md](../AGENTS.md).

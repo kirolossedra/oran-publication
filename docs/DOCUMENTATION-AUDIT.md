@@ -4,13 +4,13 @@
 
 ## RA-ENG-001 source feasibility audit
 
-**Audit date:** 2026-11-11. **Status:** documentation complete for the source-only audit; mission remains **INCOMPLETE** because the expected ignored `simulator/` tree is absent and bounded runtime probes were not possible.
+**Audit date:** 2026-11-11. **Status:** documentation updated; mission remains **INCOMPLETE** because runtime probes and campaign evidence remain outstanding. The exact pinned source tree and C++ build are now restored under ignored `simulator/`.
 
 ### Evidence checked
 
 - Repository issue #14 F1–F6 requirements, parent scientific scope in issue #12, and roadmap decision gates in issue #23; no stale issue #1–#10 was edited.
 - Environment manifest pins and exact public source files at the recorded ib-ORAN, ns-3 and NR v5.1 revisions. Findings are line-linked in the [capability matrix](research/RA-ENG-001-capability-matrix.md).
-- Host OS, CPU/RAM, Python/tool presence, disk space, branch, clean status and local presence/absence of `simulator/`.
+- Host OS, CPU/RAM, Python/tool presence, disk space, branch and initial absence of `simulator/`; exact local source pin verification, dependency restoration, C++ build and Python bridge import.
 - Updated README/docs navigation, mission index, Mermaid source-grounded diagram, relative Markdown links and source/claim labels.
 
 ### Source-verified findings
@@ -25,15 +25,15 @@
 
 ### Observed, unverified and limitations
 
-- **OBSERVED at mission start:** workspace was clean at `39d37ebfca594bb59640477484f0fbb476f998f0` on `main`, with 512 GiB free and no `simulator/` directory. The current working tree contains only the documentation changes listed in the mission report.
+- **OBSERVED at mission start:** workspace was clean at `39d37ebfca594bb59640477484f0fbb476f998f0` on `main`, with 512 GiB free and no `simulator/` directory. Exact manifest commits were later cloned and verified; the `ns3iboran_nr` build, protobuf objects, Python bridge module, and Python imports succeeded. The official PyTorch CPU index failed DNS resolution, leaving the pinned Torch pair uninstalled.
 - Docker CLI 29.4.1 is present, but socket access is denied; Podman and `/dev/kvm` are absent; `ip` cannot inspect netlink in this session.
-- **UNVERIFIED:** no build/runtime, building-geometry probe, repeatable trajectory check, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 documentation is not a current local observation.
-- No source code, configuration, simulator environment, or raw experiment data was changed or generated. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
+- **UNVERIFIED:** no LOS/NLOS mobility run, repeatable trajectory check, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 campaign results are not new results from this audit.
+- No upstream source was modified and no raw experiment data was generated. The researcher selected whole-cell LOS/NLOS and mobility. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
 
 ### Documentation and delivery state
 
 - Report, matrix, options and architecture diagram are linked from root README, docs README and mission index.
-- Staged-set audit passed for 8 Markdown paths (53,002 bytes total; largest file 17,206 bytes); no credential-pattern match, generated artifact, binary, or upstream source/build tree is staged. Local commit `36d11a44c023ef7ce5e24a8bfc78576516bdc0c0` was created; push failed because Git could not read a GitHub username. GitHub API checked remote `main` before and after the push attempt and confirmed it remains at `39d37ebfca594bb59640477484f0fbb476f998f0`. Researcher decision gates are listed in the report and technical-options doc.
+- This follow-up staged-set audit passed for five Markdown paths (33,941 bytes before this audit note); no credential-pattern matches, generated artifacts, binaries, simulator sources/builds, or unrelated paths were staged. Simulator sources, venvs, dependency caches, build products, and logs remain ignored. Local `main` is two commits ahead of remote `main`; push previously failed because Git could not read a GitHub username. Researcher choices and the remaining runtime gate are listed in the report and technical-options doc.
 
 ## Mission 1 evidence checked
 
