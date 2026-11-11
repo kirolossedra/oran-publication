@@ -25,7 +25,7 @@
 
 ### Observed, unverified and limitations
 
-- **OBSERVED at mission start:** workspace was clean at `39d37ebfca594bb59640477484f0fbb476f998f0` on `main`, with 512 GiB free and no `simulator/` directory. Exact manifest commits were later cloned and verified; the `ns3iboran_nr` build, protobuf objects, Python bridge module, and Python imports succeeded. The official PyTorch CPU index failed DNS resolution, leaving the pinned Torch pair uninstalled.
+- **OBSERVED at mission start:** workspace was clean at `39d37ebfca594bb59640477484f0fbb476f998f0` on `main`, with 512 GiB free and no `simulator/` directory. Exact manifest commits were later cloned and verified; the `ns3iboran_nr` build, protobuf objects, Python bridge module, and Python imports succeeded. DNS resolution failed for both the official PyTorch CPU index and its alternate CDN, leaving the pinned Torch pair uninstalled; the failure log is under ignored `simulator/logs/RA-ENG-001-restore-20261111/`.
 - Docker CLI 29.4.1 is present, but socket access is denied; Podman and `/dev/kvm` are absent; `ip` cannot inspect netlink in this session.
 - **UNVERIFIED:** no LOS/NLOS mobility run, repeatable trajectory check, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 campaign results are not new results from this audit.
 - No upstream source was modified and no raw experiment data was generated. The researcher selected whole-cell LOS/NLOS and mobility. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
