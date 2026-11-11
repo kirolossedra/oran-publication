@@ -4,7 +4,7 @@
 
 ## RA-ENG-001 source feasibility audit
 
-**Audit date:** 2026-11-11. **Status:** documentation updated; mission remains **INCOMPLETE** because runtime probes and campaign evidence remain outstanding. The exact pinned source tree and C++ build are now restored under ignored `simulator/`.
+**Audit date:** 2026-11-11. **Status:** documentation updated; mission remains **INCOMPLETE** because full-scenario, grant, traffic and packet-tail evidence remain outstanding. The exact pinned source tree and C++ build are restored under ignored `simulator/`.
 
 ### Evidence checked
 
@@ -16,7 +16,7 @@
 ### Source-verified findings
 
 - Pinned NR helper exposes global `LOS` and `NLOS` condition factories. The default ib-ORAN UMi setup uses `Default` and sets both ThreeGpp channel-condition and channel-model update periods to zero.
-- Pinned ns-3 ThreeGpp condition model caches condition per node pair and does not recompute it when update period is zero. The small-scale ThreeGpp channel model also disables updates at zero. The propagation-loss model still calculates from current endpoint positions; no movement trace was run.
+- Pinned ns-3 ThreeGpp condition model caches condition per node pair and does not recompute it when update period is zero. The small-scale ThreeGpp channel model also disables updates at zero. The propagation-loss model still calculates from current endpoint positions; the isolated movement probe did not measure propagation metrics.
 - The Buildings condition model evaluates endpoint positions and LOS obstruction per pair. One-link selective geometry is a plausible **small-patch option**, not a verified probe result.
 - ib-ORAN hardcodes RandomWalk2d, 0.83 m/s and random initial UE locations; it seeds the simulation but has no configurable fixed/controlled mode or retained trajectory series.
 - The scheduler interface carries per-UE and per-direction CQI/buffer/rate state and actions. The xApp max-RBG value is an upper bound; dApp actions and C++ MAC grant/DCI paths are distinct.
@@ -27,8 +27,8 @@
 
 - **OBSERVED at mission start:** workspace was clean at `39d37ebfca594bb59640477484f0fbb476f998f0` on `main`, with 512 GiB free and no `simulator/` directory. Exact manifest commits were later cloned and verified; the `ns3iboran_nr` build, protobuf objects, Python bridge module, and Python imports succeeded. DNS resolution failed for both the official PyTorch CPU index and its alternate CDN, leaving the pinned Torch pair uninstalled; the failure log is under ignored `simulator/logs/RA-ENG-001-restore-20261111/`.
 - Docker CLI 29.4.1 is present, but socket access is denied; Podman and `/dev/kvm` are absent; `ip` cannot inspect netlink in this session.
-- **OBSERVED:** `nr-channel-setup-test`, `mobility-trace`, and `three-gpp-propagation-loss-model` passed. The helper setup suite confirms model factory selection; its coverage does not evaluate every configured UE endpoint. No ib-ORAN six-UE whole-cell LOS/NLOS run, matched-seed trajectory comparison, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 campaign results are not new results from this audit.
-- No tracked upstream source or configuration file was modified and no research output data was generated. The ignored local CMake cache was temporarily set to `NS3_EXAMPLES=OFF` for test-runner construction, then restored to `NS3_EXAMPLES=ON`. The researcher selected whole-cell LOS/NLOS and mobility. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
+- **OBSERVED:** `nr-channel-setup-test`, `mobility-trace`, and `three-gpp-propagation-loss-model` passed. An isolated C++ probe queried all six gNB↔UE pairs and observed six LOS results with the LOS helper and six NLOS results with the NLOS helper. Two separate seed 1/run 1 probe invocations produced identical UE positions at 0, 60 and 130 seconds. The probe is not the full ib-ORAN environment and does not verify its RNG stream ordering. No full-scenario execution, applied-grant comparison, traffic pilot, or packet trace was run. Historical Mission 1 campaign results are not new results from this audit.
+- No tracked upstream source or configuration file was modified and no research outcome dataset was generated. The ignored local scratch probe and two stdout logs are preserved under `simulator/`; the ignored local CMake cache was temporarily set to `NS3_EXAMPLES=OFF` for target construction, then restored to `NS3_EXAMPLES=ON`. The researcher selected whole-cell LOS/NLOS and mobility. No scientific novelty, industrial validity, causal effect, or performance result is claimed.
 
 ### Documentation and delivery state
 
