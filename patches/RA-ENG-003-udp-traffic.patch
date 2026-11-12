@@ -1,0 +1,246 @@
+diff --git a/model/iboran_campaign/iboran_orchestrator.py b/model/iboran_campaign/iboran_orchestrator.py
+index 17e00da..6cb840a 100755
+--- a/model/iboran_campaign/iboran_orchestrator.py
++++ b/model/iboran_campaign/iboran_orchestrator.py
+@@ -490,0 +491,6 @@ class IbOranOrchestrator:
++        if self.common_params.trafficMode == "Udp":
++            print(
++                "ib-ORAN Orchestrator: retaining UDP FlowMonitor XML for "
++                "per-UE flow identity mapping."
++            )
++            return
+diff --git a/model/iboran_ran_environment/iboran-ran-common.cc b/model/iboran_ran_environment/iboran-ran-common.cc
+index b49a53e..3982b2c 100644
+--- a/model/iboran_ran_environment/iboran-ran-common.cc
++++ b/model/iboran_ran_environment/iboran-ran-common.cc
+@@ -16,0 +17,2 @@
++#include <ns3/applications-module.h>
++
+@@ -22,0 +25 @@
++#include <map>
+@@ -28,0 +32,44 @@ namespace ns3
++namespace
++{
++struct UdpFlowCounters
++{
++    uint64_t txPackets{0};
++    uint64_t txBytes{0};
++    uint64_t rxPackets{0};
++    uint64_t rxBytes{0};
++};
++std::map<uint16_t, UdpFlowCounters> g_udpFlowCounters;
++
++void
++CountUdpTx(Ptr<const Packet> packet, const Address&, const Address& peer)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(peer).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.txPackets;
++    counters.txBytes += packet->GetSize();
++}
++
++void
++CountUdpRx(Ptr<const Packet> packet, const Address&, const Address& local)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(local).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.rxPackets;
++    counters.rxBytes += packet->GetSize();
++}
++
++void
++PrintUdpFlowResult(uint32_t ueIndex,
++                   const std::string& direction,
++                   Ipv4Address ueAddress,
++                   Ipv4Address remoteAddress,
++                   uint16_t port,
++                   Ptr<NrUeNetDevice> ueDevice)
++{
++    const auto& counters = g_udpFlowCounters[port];
++    const uint16_t rnti = ueDevice ? ueDevice->GetRrc()->GetRnti() : 0;
++    std::cout << "UE_TRAFFIC_RESULT," << direction << ',' << ueIndex << ',' << ueAddress << ','
++              << rnti << ',' << remoteAddress << ',' << port << ',' << counters.txPackets << ','
++              << counters.txBytes << ',' << counters.rxPackets << ',' << counters.rxBytes << '\n';
++}
++} // namespace
+@@ -458,0 +506,90 @@ SetupIbOranApplications(const CommonRanParams& commonParams,
++    if (commonParams.trafficMode == "Udp")
++    {
++        NS_ABORT_MSG_IF(commonParams.ueTraffic.empty(), "Udp trafficMode requires common.ueTraffic");
++        for (const auto& flow : commonParams.ueTraffic)
++        {
++            NS_ABORT_MSG_IF(flow.ueIndex >= ueNodes.GetN(), "ueTraffic ueIndex is outside ueNum");
++            NS_ABORT_MSG_IF(flow.startTime < 0 || flow.stopTime <= flow.startTime ||
++                                flow.sinkStopTime < flow.stopTime || flow.sinkStopTime > commonParams.simTime,
++                            "Invalid per-UE UDP start/stop/sinkStop times");
++            const uint32_t i = flow.ueIndex;
++            const uint16_t dlPort = static_cast<uint16_t>(2000 + i);
++            const uint16_t ulPort = static_cast<uint16_t>(4000 + i);
++            const auto ueDevice = DynamicCast<NrUeNetDevice>(ueDevs.Get(i));
++            const auto rnti = ueDevice ? ueDevice->GetRrc()->GetRnti() : 0;
++            if (flow.enableDl)
++            {
++                NS_ABORT_MSG_IF(flow.dlBitRate == 0 || flow.dlPacketSize == 0, "DL UDP rate and packet size must be positive");
++                PacketSinkHelper sink("ns3::UdpSocketFactory",
++                                      InetSocketAddress(ueIpIfaces.GetAddress(i), dlPort));
++                auto sinks = sink.Install(ueNodes.Get(i));
++                sinks.Start(Seconds(flow.startTime));
++                sinks.Stop(Seconds(flow.sinkStopTime));
++                auto sinkApp = DynamicCast<PacketSink>(sinks.Get(0));
++                sinkApp->TraceConnectWithoutContext("RxWithAddresses", MakeCallback(&CountUdpRx));
++                rxApps.Add(sinks);
++
++                OnOffHelper source("ns3::UdpSocketFactory",
++                                   InetSocketAddress(ueIpIfaces.GetAddress(i), dlPort));
++                source.SetAttribute("DataRate", DataRateValue(DataRate(flow.dlBitRate)));
++                source.SetAttribute("PacketSize", UintegerValue(flow.dlPacketSize));
++                source.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
++                source.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
++                auto sources = source.Install(remoteHost);
++                sources.Start(Seconds(flow.startTime));
++                sources.Stop(Seconds(flow.stopTime));
++                auto sourceApp = DynamicCast<OnOffApplication>(sources.Get(0));
++                sourceApp->TraceConnectWithoutContext("TxWithAddresses", MakeCallback(&CountUdpTx));
++                txApps.Add(sources);
++                std::cout << "UE_TRAFFIC_CONFIG,DL," << i << ',' << ueIpIfaces.GetAddress(i) << ','
++                          << rnti << ',' << remoteHostAddr << ',' << dlPort << ',' << flow.dlBitRate
++                          << ',' << flow.dlPacketSize << ',' << flow.startTime << ',' << flow.stopTime
++                          << ',' << flow.sinkStopTime << '\n';
++                Simulator::Schedule(Seconds(commonParams.simTime - 1e-6),
++                                    &PrintUdpFlowResult,
++                                    i,
++                                    std::string("DL"),
++                                    ueIpIfaces.GetAddress(i),
++                                    remoteHostAddr,
++                                    dlPort,
++                                    ueDevice);
++            }
++            if (flow.enableUl)
++            {
++                NS_ABORT_MSG_IF(flow.ulBitRate == 0 || flow.ulPacketSize == 0, "UL UDP rate and packet size must be positive");
++                PacketSinkHelper sink("ns3::UdpSocketFactory", InetSocketAddress(remoteHostAddr, ulPort));
++                auto sinks = sink.Install(remoteHost);
++                sinks.Start(Seconds(flow.startTime));
++                sinks.Stop(Seconds(flow.sinkStopTime));
++                auto sinkApp = DynamicCast<PacketSink>(sinks.Get(0));
++                sinkApp->TraceConnectWithoutContext("RxWithAddresses", MakeCallback(&CountUdpRx));
++                rxApps.Add(sinks);
++
++                OnOffHelper source("ns3::UdpSocketFactory", InetSocketAddress(remoteHostAddr, ulPort));
++                source.SetAttribute("DataRate", DataRateValue(DataRate(flow.ulBitRate)));
++                source.SetAttribute("PacketSize", UintegerValue(flow.ulPacketSize));
++                source.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
++                source.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
++                auto sources = source.Install(ueNodes.Get(i));
++                sources.Start(Seconds(flow.startTime));
++                sources.Stop(Seconds(flow.stopTime));
++                auto sourceApp = DynamicCast<OnOffApplication>(sources.Get(0));
++                sourceApp->TraceConnectWithoutContext("TxWithAddresses", MakeCallback(&CountUdpTx));
++                txApps.Add(sources);
++                std::cout << "UE_TRAFFIC_CONFIG,UL," << i << ',' << ueIpIfaces.GetAddress(i) << ','
++                          << rnti << ',' << remoteHostAddr << ',' << ulPort << ',' << flow.ulBitRate
++                          << ',' << flow.ulPacketSize << ',' << flow.startTime << ',' << flow.stopTime
++                          << ',' << flow.sinkStopTime << '\n';
++                Simulator::Schedule(Seconds(commonParams.simTime - 1e-6),
++                                    &PrintUdpFlowResult,
++                                    i,
++                                    std::string("UL"),
++                                    ueIpIfaces.GetAddress(i),
++                                    remoteHostAddr,
++                                    ulPort,
++                                    ueDevice);
++            }
++        }
++        return;
++    }
++    NS_ABORT_MSG_IF(commonParams.trafficMode != "Dataset", "trafficMode must be Dataset or Udp");
+diff --git a/model/iboran_ran_environment/iboran-ran-params.cc b/model/iboran_ran_environment/iboran-ran-params.cc
+index 7a35e07..6c431cf 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.cc
++++ b/model/iboran_ran_environment/iboran-ran-params.cc
+@@ -108,0 +109 @@ SimParams::SimParams()
++    common.trafficMode = "Dataset";
+@@ -246,0 +248,23 @@ SimParams::LoadFromYaml(const std::string& filepath)
++        if (c["trafficMode"])
++        {
++            common.trafficMode = c["trafficMode"].as<std::string>();
++        }
++        if (auto flows = c["ueTraffic"])
++        {
++            common.ueTraffic.clear();
++            for (const auto& item : flows)
++            {
++                UeTrafficConfig flow;
++                flow.ueIndex = item["ueIndex"].as<uint32_t>();
++                flow.enableUl = item["enableUl"] ? item["enableUl"].as<bool>() : false;
++                flow.enableDl = item["enableDl"] ? item["enableDl"].as<bool>() : false;
++                flow.ulBitRate = item["ulBitRate"] ? item["ulBitRate"].as<uint32_t>() : 0;
++                flow.dlBitRate = item["dlBitRate"] ? item["dlBitRate"].as<uint32_t>() : 0;
++                flow.ulPacketSize = item["ulPacketSize"] ? item["ulPacketSize"].as<uint32_t>() : 512;
++                flow.dlPacketSize = item["dlPacketSize"] ? item["dlPacketSize"].as<uint32_t>() : 512;
++                flow.startTime = item["startTime"] ? item["startTime"].as<double>() : 1.0;
++                flow.stopTime = item["stopTime"] ? item["stopTime"].as<double>() : 8.0;
++                flow.sinkStopTime = item["sinkStopTime"] ? item["sinkStopTime"].as<double>() : flow.stopTime + 1.0;
++                common.ueTraffic.push_back(flow);
++            }
++        }
+diff --git a/model/iboran_ran_environment/iboran-ran-params.h b/model/iboran_ran_environment/iboran-ran-params.h
+index 70d6439..09b291a 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.h
++++ b/model/iboran_ran_environment/iboran-ran-params.h
+@@ -22,0 +23 @@
++#include <vector>
+@@ -27,0 +29,14 @@ namespace ns3
++struct UeTrafficConfig
++{
++    uint32_t ueIndex{0}; // zero-based UE index
++    bool enableUl{false};
++    bool enableDl{false};
++    uint32_t ulBitRate{0};
++    uint32_t dlBitRate{0};
++    uint32_t ulPacketSize{512};
++    uint32_t dlPacketSize{512};
++    double startTime{1.0};
++    double stopTime{8.0};
++    double sinkStopTime{9.0};
++};
++
+@@ -71,0 +87,2 @@ struct CommonRanParams
++    std::string trafficMode; // Dataset (upstream) or Udp (synthetic UDP)
++    std::vector<UeTrafficConfig> ueTraffic;
+diff --git a/model/utils/config_store.py b/model/utils/config_store.py
+index 4b1bfe1..178e3dd 100644
+--- a/model/utils/config_store.py
++++ b/model/utils/config_store.py
+@@ -17 +17 @@ import yaml
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, model_validator
+@@ -26,0 +27,25 @@ RUN_CONFIG_PATH = (
++class UeTrafficConfig(BaseModel):
++    ueIndex: int = Field(ge=0, le=5)
++    enableUl: bool = False
++    enableDl: bool = False
++    ulBitRate: int = Field(default=0, ge=0)
++    dlBitRate: int = Field(default=0, ge=0)
++    ulPacketSize: int = Field(default=512, ge=1)
++    dlPacketSize: int = Field(default=512, ge=1)
++    startTime: float = Field(default=1.0, ge=0.0)
++    stopTime: float = Field(default=8.0, gt=0.0)
++    sinkStopTime: float = Field(default=9.0, gt=0.0)
++
++    @model_validator(mode="after")
++    def validate_times_and_rates(self):
++        if self.stopTime <= self.startTime or self.sinkStopTime < self.stopTime:
++            raise ValueError("traffic stopTime must follow startTime and sinkStopTime must drain")
++        if self.enableUl and self.ulBitRate <= 0:
++            raise ValueError("enabled UL flow requires ulBitRate > 0")
++        if self.enableDl and self.dlBitRate <= 0:
++            raise ValueError("enabled DL flow requires dlBitRate > 0")
++        if not self.enableUl and not self.enableDl:
++            raise ValueError("each ueTraffic row must enable UL or DL")
++        return self
++
++
+@@ -65,0 +91,2 @@ class CommonRanParams(BaseModel):
++    trafficMode: Literal["Dataset", "Udp"] = "Dataset"
++    ueTraffic: list[UeTrafficConfig] = Field(default_factory=list)

@@ -10,7 +10,7 @@ The intended first research scenario has one gNB, one latency-sensitive UE, and 
 
 ## Current state
 
-Mission 1 installed and built the pinned upstream stack and completed one upstream NR toy-workload smoke baseline. RA-ENG-002 added and validated whole-cell LOS/NLOS controls plus fixed and controlled six-UE movement, while preserving RandomWalk. These are no-application-traffic engineering checks. They do not implement the proposed latency-under-load experiment: the earlier upstream workload uses image/embedding payloads, and standard outputs expose aggregate mean latency rather than packet-level tail latency. No research allocation policy or custom load scenario has been run.
+Mission 1 installed and built the pinned upstream stack and completed one upstream NR toy-workload smoke baseline. RA-ENG-002 added and validated whole-cell LOS/NLOS controls plus fixed and controlled six-UE movement, while preserving RandomWalk. RA-ENG-003 adds a separate synthetic UDP path and validates six bounded traffic-control cases with per-UE FlowIds and event counters. Those are engineering checks, not the proposed latency-under-load experiment: the earlier upstream workload uses image/embedding payloads, and no packet-level tail analysis or research allocation-policy comparison has been run.
 
 The tested baseline is ns-3.48 + 5G-LENA NR v5.1 + ns3-ai + Orange ib-ORAN, with Python 3.12.3. Exact source commits, local dependency versions, and run identity are in [the environment manifest](manifests/environment.json), with [Python package pins](manifests/python-environment-lock.txt) and a [linux-64 C++ package lock](manifests/cpp-environment-lock.txt). Source trees, virtual environment, build products, model cache, full logs, and run directories stay in ignored `simulator/`.
 
@@ -31,6 +31,8 @@ The actual executed control path is diagrammed in [the runtime architecture repo
 - [RA-ENG-001 feasibility audit](docs/missions/RA-ENG-001-feasibility.md) · [capability matrix](docs/research/RA-ENG-001-capability-matrix.md) · [technical options](docs/research/RA-ENG-001-technical-options.md)
 - [RA-ENG-001 signal-path diagram](docs/architecture/RA-ENG-001-signal-path.md)
 - [RA-ENG-002 radio/mobility validation report](docs/missions/RA-ENG-002-radio-mobility.md)
+- [RA-ENG-003 six-UE traffic and flow identity report](docs/missions/RA-ENG-003-six-ue-traffic.md)
+- [RA-ENG-003 flow mapping](docs/architecture/g1-flow-mapping.md) · [replay patch](patches/RA-ENG-003-udp-traffic.patch) · [six traffic configs](configs/scenarios)
 - [RA-ENG-002 radio/mobility methodology](docs/methodology/g1-channel-mobility-validation.md) · [replay patch](patches/RA-ENG-002-radio-mobility.patch) · [scenario configs](configs/scenarios)
 - [KIRO portfolio execution report, issue #24](docs/missions/KIRO-issue-24-execution.md)
 - [Decision records](docs/decisions/README.md)
@@ -39,4 +41,4 @@ The actual executed control path is diagrammed in [the runtime architecture repo
 
 ## Next step
 
-Issue #24 KIRO requests portfolio execution. The execution report records the dependency chain, researcher-owned approval gates, and per-mission status. The old #1–#10 prompts are stale; RA-ENG-001–009 (#14–#22) are the active engineering chain. RA-ENG-001's feasibility audit and RA-ENG-002's radio/mobility validation are complete. Next is RA-ENG-003; the formal protocol and manuscript conclusions remain gated by the researcher's recorded decisions. CPU Torch is installed and verified.
+Issue #24 KIRO requests portfolio execution. The execution report records the dependency chain, researcher-owned approval gates, and per-mission status. The old #1–#10 prompts are stale; RA-ENG-001–009 (#14–#22) are the active engineering chain. RA-ENG-001's feasibility audit, RA-ENG-002's radio/mobility validation, and RA-ENG-003's six-UE traffic-path validation are complete. Next is RA-ENG-004; the formal protocol and manuscript conclusions remain gated by the researcher's recorded decisions. CPU Torch is installed and verified.

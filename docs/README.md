@@ -17,5 +17,7 @@
 - [RA-ENG-001 feasibility report](missions/RA-ENG-001-feasibility.md)
 - [RA-ENG-001 capability matrix](research/RA-ENG-001-capability-matrix.md) · [technical options](research/RA-ENG-001-technical-options.md) · [source-grounded signal path](architecture/RA-ENG-001-signal-path.md)
 - [RA-ENG-002 radio/mobility validation report](missions/RA-ENG-002-radio-mobility.md)
+- [RA-ENG-003 six-UE traffic and flow identity report](missions/RA-ENG-003-six-ue-traffic.md)
+- [RA-ENG-003 source-grounded flow mapping](architecture/g1-flow-mapping.md) · [replay patch](../patches/RA-ENG-003-udp-traffic.patch) · [six validation configs](../configs/scenarios)
 - [RA-ENG-002 validation methodology](methodology/g1-channel-mobility-validation.md) · [replay patch](../patches/RA-ENG-002-radio-mobility.patch) · [scenario configs](../configs/scenarios)
 - [KIRO portfolio execution report, issue #24](missions/KIRO-issue-24-execution.md)

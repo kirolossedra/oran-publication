@@ -10,6 +10,12 @@ The [RA-ENG-002 mission report](missions/RA-ENG-002-radio-mobility.md) was creat
 
 This preflight/reconciliation delivery stages eight Markdown paths only (78,410 bytes total; largest file 23,815 bytes). The audit checked 67 relative Markdown links (all targets exist), `git diff --cached --check`, staged path names, file sizes, credential patterns, and simulator/source/build/cache paths; no credentials, generated/binary artifacts, or simulator/source paths were staged.
 
+### RA-ENG-003 six-UE traffic and flow identity
+
+The [RA-ENG-003 report](missions/RA-ENG-003-six-ue-traffic.md) began as a template-based pre-implementation report before source inspection. The pinned source trace is now documented in [G1 flow mapping](architecture/g1-flow-mapping.md). A replay patch, six low-rate scenario configs, per-UE/direction source/sink controls, TX/RX payload event counters, and a FlowMonitor tuple-to-FlowId mapper were built and validated. The `ns3iboran_nr` target built successfully. Six short cases (target only, competitor only, all-six, UL-only, DL-only, and mixed low-rate target plus competitors) completed; FlowMonitor and app-event packet counts matched. A Dataset-mode/no-flow regression also ran. Outputs are preserved locally under ignored `simulator/logs/RA-ENG-003-20261112/`. The separate Dataset image/CLIP workload smoke attempt failed before simulation because Hugging Face DNS resolution failed; its full log is retained, and the earlier Mission 1 smoke remains historical evidence. No research traffic protocol, latency result, or performance conclusion is claimed.
+
+The RA-ENG-003 publication stage contains 15 tracked paths (82,172 bytes; largest file 22,408 bytes). All are documentation, six YAML configs, one text patch, and one Python mapper; no simulator source/build/cache/virtualenv/raw output path was staged. Staged scan found no credential patterns or binary/non-UTF-8 content; `git diff --cached --check` passed. Seventy-nine local Markdown links across seven updated documents resolve. The patch replay was checked in a clean worktree after RA-ENG-002. Commit/push and remote SHA verification remain outstanding.
+
 ## RA-ENG-001 source feasibility audit
 
 **Audit date:** 2026-11-12. **Status:** **COMPLETE as a source-feasibility audit**. The exact pinned source tree, C++ build, existing Mission 1 scenario evidence, isolated probes, and pinned CPU Torch environment are recorded. This audit does not claim a loaded G1 campaign.

@@ -1,0 +1,18 @@
+rat_type: NR
+common:
+  simTime: 3.5
+  ueNum: 6
+  enableDlFlow: false
+  enableUlFlow: false
+  rngRun: 1
+  mobilityMode: Fixed
+  trafficMode: Udp
+  ueTraffic:
+    - {ueIndex: 0, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 1, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 2, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 3, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 4, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 5, enableDl: true, dlBitRate: 8000, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+nr:
+  channelCondition: LOS
