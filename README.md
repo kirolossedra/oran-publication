@@ -1,4 +1,4 @@
-# O-RAN research — G1 scheduling and high-throughput
+# O-RAN research — PI-directed LOS/NLOS transition and O-RAN control
 
 This repository is the **single tracked source of truth** for the O-RAN study.
 The WSL workspace must have the same relative paths for all tracked files.
@@ -19,7 +19,18 @@ and generated reports are expected to exist locally without GitHub copies.
 | [Results](results/README.md) | Reviewed calibration; other raw/generated results stay local |
 | [Archive](archive/README.md) | Retired patches and obsolete deployment code |
 
-## What to run next
+## Current scientific direction
+
+The active engineering path is a **target-moving UE6 LOS→NLOS→LOS transition** with a matched all-LOS arm, competing UEs, and actual programmable O-RAN xApp RBG bounds. The design is detailed in [new transition implementation](docs/research/los-nlos-transition-implementation.md); [issue #26](https://github.com/kirolossedra/oran-publication/issues/26) governs PI scientific choices. High-throughput targets, final QoS semantics, transition timing, bandwidth and scheduler k are **not yet numerically selected**. The old 160-cell G1 campaign remains archived in-place for evidence and should not be executed as the new program.
+
+```bash
+python experiment-scripts/run_los_nlos_transition.py --plan-only
+# After PI fills the required JSON values and WSL is provisioned:
+python experiment-scripts/prepare_los_nlos_transition.py --apply-overrides --build
+python experiment-scripts/run_los_nlos_transition.py --limit 2
+```
+
+## Legacy G1 recovery and diagnostics (not current experiment)
 
 **The Git checkout in WSL was reported broken (empty `.git`).**
 Before pulling or building, follow the
