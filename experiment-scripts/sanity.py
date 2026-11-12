@@ -165,6 +165,7 @@ def summarize(campaign: Path, out: Path, expected_cells=20) -> dict:
     demand_by_ue = {(r["cell_id"], r["direction"], str(r["ue_index"])): r for r in demand}
     metrics_by_case = {}
     enriched = []
+    target_pdr = SPEC.get("experiment_intent", {}).get("reliability_target_pdr_exploratory")
     for r in metrics:
         case = (r["cell_id"], r["direction"])
         metrics_by_case.setdefault(case, []).append(r)
@@ -185,6 +186,14 @@ def summarize(campaign: Path, out: Path, expected_cells=20) -> dict:
             "tx_packets": int(r.get("tx_packets") or 0),
             "rx_packets": int(r.get("rx_unique_packets") or 0),
             "pdr": fnum(r.get("pdr"), None),
+            "observed_pdr_target": target_pdr,
+            "observed_pdr_meets_target": (
+                fnum(r.get("pdr"), None) >= target_pdr
+                if r.get("pdr") not in ("", None) and target_pdr is not None
+                else None
+            ),
+            "target_reliability_confidence_demonstrated": False,
+            "application_latency_deadline_ms": SPEC.get("experiment_intent", {}).get("application_latency_deadline_ms"),
             "lost_or_unreceived": int(r.get("lost_or_unreceived_at_stop") or 0),
             "p50_ms": fnum(r.get("p50_latency_ms"), None),
             "p95_ms": fnum(r.get("p95_latency_ms"), None),
@@ -300,8 +309,19 @@ def summarize(campaign: Path, out: Path, expected_cells=20) -> dict:
     problematic_rr = [r for r in backlog_audit
                       if r["policy"] == "RoundRobin" and r["starvation_diagnostic"]]
     # These are one-seed engineering diagnostics, not statistical significance.
+    measured_pdr_met = sum(
+        x["observed_pdr_meets_target"] is True for x in enriched
+    )
+    measured_pdr_failed = sum(
+        x["observed_pdr_meets_target"] is False for x in enriched
+    )
     verdict = {
         "status": "PASS" if not issues else "FAIL",
+        "study_objective": SPEC.get("experiment_intent", {}).get("mode"),
+        "observed_pdr_goal": target_pdr,
+        "per_ue_direction_observed_pdr_target_met": measured_pdr_met,
+        "per_ue_direction_observed_pdr_target_not_met": measured_pdr_failed,
+        "ultra_reliable_service_claim": "NOT_ESTABLISHED: diagnostic observations only; needs PDR confidence bounds, deadline and replicated tests",
         "completed_valid_cells": len(selected_cells),
         "expected_cells": expected_cells,
         "analyzed_per_ue_direction_rows": len(enriched),
@@ -322,6 +342,8 @@ def summarize(campaign: Path, out: Path, expected_cells=20) -> dict:
         f"{len(problematic_rr)} RoundRobin starvation flags, {len(observed_topk)} TopKCqi starvation flags.",
         "",
         "This is a one-seed diagnostic, **not** evidence for statistical or publication claims. "
+        f"Exploratory PDR target {target_pdr}; observed UE/direction cells meeting it: {measured_pdr_met}, "
+        f"below target: {measured_pdr_failed}. No ultra-reliable service compliance claim is established. "
         "The 1-second continuous-backlog grant-gap threshold is an engineering alarm, not a standard.",
         "",
         "## High-throughput DL/UL results",
