@@ -1,0 +1,53 @@
+{
+  "campaign_id": "los-nlos-transition-engineering-v1",
+  "research_status": "approved LOS/NLOS direction, numerical design gates pending",
+  "topology": {
+    "gnb_count": 1,
+    "ue_count": 6,
+    "target_ue_index": 6,
+    "target_velocity_mps": 1,
+    "background_stationary": true
+  },
+  "channel_modes": [
+    "all-los",
+    "ue-transition"
+  ],
+  "transition": {
+    "nlos_start_s": null,
+    "nlos_end_s": null
+  },
+  "traffic_bps": {
+    "target": {
+      "UL": null,
+      "DL": null
+    },
+    "background_per_ue": {
+      "UL": null,
+      "DL": null
+    }
+  },
+  "radio": {
+    "center_frequency_hz": 3500000000,
+    "bandwidth_hz": null,
+    "numerology": 1
+  },
+  "simulation": {
+    "duration_s": 20,
+    "receiver_drain_s": 1,
+    "packet_payload_bytes": 512
+  },
+  "orchestrator": {
+    "dapp_selectors": [
+      "RoundRobin",
+      "GreedyPropFairness"
+    ],
+    "xapp_bounds": [
+      "Bypass",
+      "Clamp"
+    ],
+    "k": null
+  },
+  "seeds": [
+    11
+  ]
+}
