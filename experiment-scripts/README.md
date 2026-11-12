@@ -30,3 +30,7 @@ The report includes **offered / TX / goodput / MAC throughput (Mbps)**,
 six-UE totals and Jain fairness, packet delivery and P50/P95/P99,
 CQI/MCS, queue backlog, applied grants, PRB shares, and starvation.
 No full campaign before the PI reviews this evidence.
+
+## High-rate / reliability gate
+
+The runner now applies NR settings from `configs/experiment.json` explicitly and uses a distinct campaign ID for the revised high-rate study. Preliminary busy-direction offered load: **50 Mbps per UE**, **100 MHz** NR, against a **1 Mbps/UE** control. Codex must calibrate 10/25/50/100 Mbps per UE (at least stationary/all-LOS one-seed matched policy pairs) **before treating 50 Mbps as the selected operating point**. The sanity CSV and JSON report observed PDR against the exploratory five-nines goal, while explicitly refusing to claim verified ultra-reliability or a missing latency deadline. Throughput and reliability must be evaluated jointly; do not extrapolate from offered load. Keep previous runs under their original campaign ID.
