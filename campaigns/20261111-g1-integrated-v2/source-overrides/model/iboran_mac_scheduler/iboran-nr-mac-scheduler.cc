@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <map>
+#include <utility>
 #include <cfloat>
 #include <climits>
 #include <vector>
@@ -31,6 +33,29 @@ NS_LOG_COMPONENT_DEFINE("IbOranNrMacScheduler");
 
 namespace
 {
+// Log changes in the availability/interpretation of CQI input without
+// changing the existing CQI or MCS decisions.  In particular DL CQI zero
+// is ambiguous: it can mean out-of-range or absent feedback in this type.
+void RecordCqiInputState(uint64_t timeNs, uint16_t rnti, const char* direction,
+                         int rawCqi, int usedCqi, const char* status)
+{
+    const char* root = std::getenv("IBORAN_RUN_DIR");
+    if (!root) return;
+    static std::map<std::pair<std::string, uint16_t>, std::string> lastStatus;
+    const auto key = std::make_pair(std::string(direction), rnti);
+    if (lastStatus[key] == status) return;
+    lastStatus[key] = status;
+    static bool initialized = false;
+    std::ofstream out(std::string(root) + "/logs/mac-cqi-input-state.csv", std::ios::app);
+    if (!initialized)
+    {
+        out << "time_ns,rnti,direction,raw_cqi,used_cqi,input_state\n";
+        initialized = true;
+    }
+    out << timeNs << ',' << rnti << ',' << direction << ',' << rawCqi << ','
+        << usedCqi << ',' << status << '\n';
+}
+
 void
 RecordAppliedGrant(const char* direction, uint16_t rnti, uint64_t timeNs,
                    uint16_t rbgStart, uint16_t rbgLen, uint8_t mcs,
@@ -232,9 +257,14 @@ IbOranNrMacScheduler::FillUeIndication(const std::shared_ptr<NrMacSchedulerUeInf
 {
     const uint16_t rnti = ueInfo->m_rnti;
 
-    // Handle channel quality
+    // Preserve the original fallback control behavior; separately trace
+    // which CQI inputs were present so fallback is not mistaken for a measurement.
     uint8_t rntiCqi{1};
     uint8_t rntiMcs{0};
+    int rawCqi{-1};
+    const char* cqiInputState = isUl
+        ? "ul-sinr-samples-present-age-unverified"
+        : "dl-cqi-value-present-age-unverified";
 
     if (isUl)
     {
@@ -247,20 +277,29 @@ IbOranNrMacScheduler::FillUeIndication(const std::shared_ptr<NrMacSchedulerUeInf
             }
             avgSinrLinear /= static_cast<double>(ueInfo->m_ulCqi.m_sinr.size());
         }
+        if (ueInfo->m_ulCqi.m_sinr.empty())
+        {
+            cqiInputState = "ul-no-sinr-samples";
+        }
         rntiCqi = GetCqiFromSinrLinear(avgSinrLinear);
+        rawCqi = ueInfo->m_ulCqi.m_sinr.empty() ? -1 : static_cast<int>(rntiCqi);
         rntiMcs = ueInfo->m_ulMcs;
     }
     else
     {
         rntiCqi = static_cast<uint8_t>(ueInfo->m_dlCqi.m_wbCqi);
+        rawCqi = static_cast<int>(rntiCqi);
         if (rntiCqi == 0)
         {
-            rntiCqi = 1; // clamp: CQI 0 means "no report", use minimum
+            cqiInputState = "dl-zero-cqi-unresolved";
+            rntiCqi = 1; // minimum CQI fallback, not a measured CQI=1
         }
         rntiMcs = ueInfo->m_dlMcs;
     }
 
     const uint64_t nowNs = Simulator::Now().GetNanoSeconds();
+    RecordCqiInputState(nowNs, rnti, isUl ? "UL" : "DL", rawCqi,
+                        static_cast<int>(rntiCqi), cqiInputState);
 
     // Full-band rate at the UE's current MCS over one slot (TBS in bytes)
     const uint32_t nRbFull = GetBandwidthInRbg() * GetNumRbPerRbg();
