@@ -4,7 +4,7 @@
 
 ## Objective and scope
 
-Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–004 (#14–#17) are completed and closed; RA-ENG-004 is published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. RA-ENG-005 (#18) is now in progress after creation of its pre-implementation report shell.
+Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–004 (#14–#17) are completed and closed; RA-ENG-004 is published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. RA-ENG-005 (#18) is closed with one-seed load-calibration results, candidate rates, and limitations documented; closeout SHA `762eb32f56d986aba3e9eac49110e4557efae26b` is remote-verified. RA-ENG-006 (#19) now has a source-grounded paired seed-11 policy probe and complete per-UE outcome record. RA-ENG-007 (#20) remains gated on explicit researcher protocol approval; RA-ENG-008/009 cannot complete without formal campaign outputs and researcher review.
 
 ## Dependency model
 
@@ -40,18 +40,18 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 |---:|---|---|---|
 | #14–#16 | RA-ENG-001–003 | Closed complete | Prior reports remain in history through commit `fcb460f8ec3098372605635a5c40b823faff1d2d`. |
 | #17 | RA-ENG-004 | Closed complete | [Mission report](RA-ENG-004-instrumentation.md), [schema](../methodology/g1-packet-grant-metrics.md), raw `simulator/logs/RA-ENG-004-20261112/`; commit `b75c578` is remote-verified. |
-| #18 | RA-ENG-005 | In progress | [Pre-implementation report](RA-ENG-005-load-calibration.md); source/data audit and bounded calibration remain. Final factors remain researcher-owned. |
-| #19 | RA-ENG-006 | Not started | Requires contention calibration and scope-specific checks. |
-| #20 | RA-ENG-007 | Protocol gate / campaign in progress | Researcher-authored v2 matrix exists; issue acceptance and campaign completion still require review. |
-| #21 | RA-ENG-008 | In progress in v2 package; not complete | 68 of 160 matrix cells remained at latest package snapshot; analysis and sample-count review pending. |
-| #22 | RA-ENG-009 | Researcher review gate | Requires reviewed analysis and authorized claims. |
-| #24 | KIRO | In progress | RA-ENG-004 is closed. The integrated campaign remains in progress at 92/160 successful cells; continue eligible technical missions while honoring remaining review gates. |
+| #18 | RA-ENG-005 | Closed, engineering calibration complete | [Report](RA-ENG-005-load-calibration.md), [method/results](../methodology/g1-load-calibration.md); candidate rates returned, no formal factors selected; closeout SHA `762eb32f56d986aba3e9eac49110e4557efae26b` remote-verified. |
+| #19 | RA-ENG-006 | Engineering probe complete; researcher choice pending | [Mission report](RA-ENG-006-stock-scheduling.md) and [source/control note](../research/g1-stock-policy-controls.md). RoundRobin/TopKCqi changed actual applied grants in one matched seed-11 probe; not a formal ranking. |
+| #20 | RA-ENG-007 | **Not started: researcher approval gate** | Explicit approval of channel semantics, policy pair, direction, sample count, and protocol is required. The issue directs Codex to stop if approval is absent. |
+| #21 | RA-ENG-008 | Awaiting valid formal campaign outputs | The v2 package snapshot reports 92/160 successful cells and 68 uncompleted; these package counts do not authorize a replacement formal analysis. |
+| #22 | RA-ENG-009 | Researcher review and authorization gate | Requires reviewed analysis, approved claims, and authorization to assemble publication assets. |
+| #24 | KIRO | Incomplete pending researcher gates | Technical setup and missions through #19 are documented. The formal campaign, its analysis, and publication package cannot be truthfully marked complete without the required approvals and outputs. |
 
 ## Next actions and stop conditions
 
-1. Complete RA-ENG-005 calibration evidence and provide candidate levels for researcher review without altering the formal v2 campaign.
-2. Continue eligible technical items under the user's portfolio instruction without substituting smoke runs for formal results.
-4. Leave formal scientific claims and publication readiness to researcher review; report all remaining cells, failures, and uncertainty as observed.
+1. Researcher: approve or revise the formal protocol decisions listed in issue #20, including whether to use the RoundRobin/TopKCqi pair observed in RA-ENG-006.
+2. After approval, apply the campaign's current corrected scheduler source overrides, rebuild, register the approved seed schedule, and execute only the approved formal cells. Keep RA-ENG-006 engineering traces separate.
+3. Analyze validated campaign outputs with run-level uncertainty and all six UE outcomes; request researcher review before any publication package.
 
 ## Reproduction references
 

@@ -6,6 +6,8 @@
 - [Mission status ledger](MISSIONS.md)
 - [RA-ENG-004 packet/grant instrumentation report](missions/RA-ENG-004-instrumentation.md)
 - [RA-ENG-005 six-UE load calibration report](missions/RA-ENG-005-load-calibration.md)
+- [RA-ENG-006 stock scheduling report](missions/RA-ENG-006-stock-scheduling.md)
+- [RA-ENG-006 stock policy controls](research/g1-stock-policy-controls.md)
 - [RA-ENG-005 load-calibration method and results](methodology/g1-load-calibration.md)
 - [RA-ENG-005 per-UE table and direction-specific figures](../results/RA-ENG-005/)
 - [Packet/grant metric schema](methodology/g1-packet-grant-metrics.md)
