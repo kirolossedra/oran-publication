@@ -180,6 +180,11 @@ def main():
     verify(spec)
     if not BASE.is_file() or not Path(args.python).is_file() or not MANIFEST.is_file():
         raise SystemExit("Pinned WSL dependencies/overrides missing; restore simulator first")
+    from prepare_los_nlos_transition import verify_installed
+    mismatches = verify_installed()
+    if mismatches:
+        raise SystemExit("Simulator sources do not match pinned transition implementation: " +
+                         ", ".join(mismatches) + "; run prepare_los_nlos_transition.py --apply-overrides")
     root=(args.campaign_root or ROOT/"simulator/runs"/spec["campaign_id"]).resolve()
     root.mkdir(parents=True,exist_ok=True)
     frozen=json.dumps(spec,indent=2)+"\n"
