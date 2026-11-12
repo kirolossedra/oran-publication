@@ -27,3 +27,9 @@ TopKCqi starvation at `k=1` may be intrinsic.
 **Next action:** first repair the WSL Git workspace; execute the
 20-cell throughput/grant sanity and audit results before authorizing
 the full campaign. See [entrypoints](../../experiment-scripts/README.md).
+
+## Revised target: high-throughput and ultra-reliable operation
+
+The researcher rejected the former **6 Mbps/UE** high load as inadequate. We are now investigating whether **high delivered throughput can coexist with near-lossless delivery and controlled latency** when one UE experiences selective NLOS. The protocol config uses **100 MHz** NR and a provisional **50 Mbps/UE** busy-direction load (up to 300 Mbps offered per direction across six UEs), with a 1 Mbps/UE control. These are **not measured achievements or approved final rates**. Before freezing the full matrix, calibrate candidate per-UE offered loads **10, 25, 50, 100 Mbps** using actual delivered goodput, measured TX rate, per-UE PDR/loss, CQI, MCS, queues, MAC allocations and latency. Compare both schedulers, including their starvation behavior, at feasible and overloaded points.
+
+An exploratory **99.999% PDR** target is a goal, not evidence of URLLC compliance. The existing 20-second simulations, single sanity seed, and lack of an approved deadline cannot establish five-nines confidence. Report packet counts, confidence limits, received-only latency and any true deadline misses; do not call the observed high-rate mode ultra-reliable until it is demonstrated. The full 160-arm experiment remains on hold pending calibration and researcher approval.
