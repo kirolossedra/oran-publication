@@ -1,6 +1,7 @@
 # Documentation index
 
 - [Current integrated G1 v2 campaign package](../campaigns/20261111-g1-integrated-v2/README.md)
+- [Pinned upstream source map and editable overrides](../campaigns/20261111-g1-integrated-v2/UPSTREAM-SOURCES.md)
 - [Campaign v2 instrumentation limitation](../campaigns/20261111-g1-integrated-v2/docs/INSTRUMENTATION-LIMITATION.md)
 - [Mission status ledger](MISSIONS.md)
 - [RA-ENG-004 packet/grant instrumentation report](missions/RA-ENG-004-instrumentation.md)

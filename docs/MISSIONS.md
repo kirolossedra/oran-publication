@@ -9,6 +9,6 @@
 | RA-ENG-007 | #20 | Researcher protocol gate | Do not start a formal comparison until its acceptance gate is satisfied. |
 | RA-ENG-008 | #21 | Awaiting campaign outputs | Analyze only validated, traceable campaign runs. |
 | RA-ENG-009 | #22 | Researcher review gate | Claims and publication authorization require researcher review. |
-| Integrated G1 v2 campaign | #24 | In progress | [Versioned package](../campaigns/20261111-g1-integrated-v2/README.md): 90/160 successful at package snapshot; 70 remain. |
+| Integrated G1 v2 campaign | #24 | In progress | [Versioned package](../campaigns/20261111-g1-integrated-v2/README.md): latest package snapshot records 92/160 successful cells; 68 remain. |
 
 Use the [mission template](../templates/MISSION-TEMPLATE.md) and repository [governance instructions](../AGENTS.md) for each new mission. Stale issues #1–#10 remain excluded per the recorded roadmap.

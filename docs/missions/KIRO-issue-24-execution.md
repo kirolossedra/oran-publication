@@ -28,7 +28,7 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 
 ## Current evidence and decisions
 
-- **Observed:** The researcher-authored integrated v2 campaign package is on `origin/main` at `9a8697c1aa31c6dcf88940c44778bed3e2ba9893`. Its manifest defines 160 planned cells across condition, mobility, load, scheduler, and five seeds. At package time 90 cells were successful, two incomplete attempts were preserved, and 70 were not complete. The package README says results are not yet campaign conclusions.
+- **Observed:** The researcher-authored integrated v2 campaign package is on `origin/main` at `e85b4dc0edc25543a5ecbea61e6c4bef4e41102f`. Its manifest defines 160 planned cells across condition, mobility, load, scheduler, and five seeds. The latest package snapshot records 92 successful cells, two incomplete attempts, and 68 cells not complete. Full editable source overrides and their SHA256 manifest were added; the package README says results are not yet campaign conclusions.
 - **Observed:** The v2 package replaces invalidated v1 packet tags with a serialized application header and documents its source-observed limitation. Its analysis/reproduction instructions live under `campaigns/20261111-g1-integrated-v2/`.
 - **Observed:** This local RA-ENG-004 work adds a separate SeqTsSizeHeader-based UDP instrumentation path and applied gNB MAC DATA DCI grant records. The short engineering runs are not the campaign data. Six bounded cases and three synthetic tests completed; commit `9b2582f` contains the report, schema, replay patches, scenario configs, and analysis tooling.
 - **Interpretation:** The integrated v2 package advances the research campaign independently of these bounded RA-ENG-004 checks. Keep its run IDs, header schema, and analysis as the canonical campaign evidence. Do not merge the short low-rate smoke results into campaign tables.
@@ -43,7 +43,7 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 | #18 | RA-ENG-005 | Not started | Requires #17 and load evidence; formal choices remain researcher-owned. |
 | #19 | RA-ENG-006 | Not started | Requires contention calibration and scope-specific checks. |
 | #20 | RA-ENG-007 | Protocol gate / campaign in progress | Researcher-authored v2 matrix exists; issue acceptance and campaign completion still require review. |
-| #21 | RA-ENG-008 | In progress in v2 package; not complete | 70 of 160 matrix cells remained at package snapshot; analysis and sample-count review pending. |
+| #21 | RA-ENG-008 | In progress in v2 package; not complete | 68 of 160 matrix cells remained at latest package snapshot; analysis and sample-count review pending. |
 | #22 | RA-ENG-009 | Researcher review gate | Requires reviewed analysis and authorized claims. |
 | #24 | KIRO | In progress | RA-ENG-004 is rebased on the campaign snapshot; complete safe publication and continue eligible technical missions while honoring remaining review gates. |
 
