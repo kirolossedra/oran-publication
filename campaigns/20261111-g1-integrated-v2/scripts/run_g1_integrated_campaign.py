@@ -33,6 +33,37 @@ LOADS = tuple(SPEC["loads"])
 POLICIES = tuple(SPEC["policies"])
 RATES = SPEC["traffic_bps_per_ue_per_direction"]
 
+# Outcome-sensitive files, including the policy code omitted from the previous provenance record.
+OUTCOME_SOURCE_PATHS = (
+    SIM / "contrib/iboran/model/iboran_application/iboran-application.cc",
+    SIM / "contrib/iboran/model/iboran_mac_scheduler/iboran-nr-mac-scheduler.cc",
+    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-common.cc",
+    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-nr-environment.cc",
+    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-params.cc",
+    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-params.h",
+    SIM / "contrib/iboran/model/utils/config_store.py",
+    SIM / "contrib/iboran/model/iboran_controller/iboran_dapp_mac_scheduler.py",
+    SIM / "contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection_round_robin.py",
+    SIM / "contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection_top_k.py",
+    SIM / "contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection.py",
+)
+
+
+def outcome_source_hashes() -> dict[str, str]:
+    return {str(p.relative_to(ROOT)): sha256(p) for p in OUTCOME_SOURCE_PATHS}
+
+
+def attempt_number(path: Path) -> int:
+    return int(path.name.split("-", 1)[1])
+
+
+def has_data_rows(path: Path, columns: set[str]) -> bool:
+    if not path.is_file():
+        return False
+    with path.open(encoding="utf-8", errors="replace") as f:
+        fields = set(f.readline().strip().split(","))
+        return columns.issubset(fields) and bool(f.readline().strip())
+
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -110,21 +141,34 @@ def attempt_config(base_cfg: dict, cell: dict, path: Path) -> dict:
     return cfg
 
 
-def latest_success(cell_dir: Path) -> bool:
-    for attempt in sorted(cell_dir.glob("attempt-*"), reverse=True):
+def latest_success(cell_dir: Path, expected_hashes: dict[str, str] | None = None) -> bool:
+    """Only reuse measured successes from the exact current implementation."""
+    if expected_hashes is None:
+        expected_hashes = outcome_source_hashes()
+    for attempt in sorted(cell_dir.glob("attempt-*"), key=attempt_number, reverse=True):
         status = attempt / "exit-status.txt"
-        required = (attempt / "logs/kpi.json", attempt / "logs/packet-events.csv",
-                    attempt / "logs/mac-grants.csv", attempt / "logs/mac-demand.csv")
-        if status.exists() and status.read_text().strip() == "0" and all(p.exists() for p in required):
-            try:
-                metadata = json.loads((attempt / "run-metadata.json").read_text())
-                if metadata.get("packet_measurement_schema") != "serialized-app-header-v1":
-                    continue
-                with (attempt / "logs/mac-demand.csv").open() as demand:
-                    if sum(1 for _ in demand) > 1:
-                        return True
-            except (OSError, json.JSONDecodeError):
-                pass
+        if not status.exists() or status.read_text().strip() != "0":
+            continue
+        try:
+            metadata = json.loads((attempt / "run-metadata.json").read_text())
+            if metadata.get("packet_measurement_schema") != "serialized-app-header-v1":
+                continue
+            if metadata.get("source_sha256") != expected_hashes:
+                continue
+            if not (attempt / "logs/kpi.json").is_file():
+                continue
+            if not has_data_rows(attempt / "logs/packet-events.csv",
+                                 {"event", "time_ns", "ue_index", "direction", "sequence", "tx_time_ns", "bytes"}):
+                continue
+            if not has_data_rows(attempt / "logs/mac-grants.csv",
+                                 {"time_ns", "rnti", "direction", "rbg_count", "mcs"}):
+                continue
+            if not has_data_rows(attempt / "logs/mac-demand.csv",
+                                 {"time_ns", "rnti", "direction", "buffer_bytes", "cqi"}):
+                continue
+            return True
+        except (OSError, ValueError, json.JSONDecodeError):
+            continue
     return False
 
 
@@ -166,14 +210,18 @@ def main() -> int:
         }, indent=2) + "\n")
     manifest = campaign_root / "attempts.jsonl"
     work = cells[:args.limit] if args.limit else cells
+    current_source_hashes = outcome_source_hashes()
     for index, cell in enumerate(work, 1):
+        if outcome_source_hashes() != current_source_hashes:
+            raise RuntimeError("Outcome source code changed during campaign; stop before mixing implementations")
         cell_dir = campaign_root / "cells" / cell["cell_id"]
         cell_dir.mkdir(parents=True, exist_ok=True)
-        if latest_success(cell_dir):
+        if latest_success(cell_dir, current_source_hashes):
             print(f"[{index}/{len(work)}] SKIP already successful {cell['cell_id']}", flush=True)
             continue
-        attempts = sorted(cell_dir.glob("attempt-*"))
-        attempt = cell_dir / f"attempt-{len(attempts)+1:02d}"
+        attempts = list(cell_dir.glob("attempt-*"))
+        next_attempt = max((attempt_number(p) for p in attempts), default=0) + 1
+        attempt = cell_dir / f"attempt-{next_attempt:02d}"
         attempt.mkdir(parents=True)
         cfg_path = attempt / "scenario.yaml"
         effective = attempt_config(base_cfg, cell, cfg_path)
@@ -197,19 +245,7 @@ def main() -> int:
             "command": command,
             "packet_measurement_schema": "serialized-app-header-v1",
             "config_sha256": sha256(cfg_path),
-            "source_sha256": {
-                str(path.relative_to(ROOT)): sha256(path)
-                for path in (
-                    SIM / "contrib/iboran/model/iboran_application/iboran-application.cc",
-                    SIM / "contrib/iboran/model/iboran_mac_scheduler/iboran-nr-mac-scheduler.cc",
-                    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-common.cc",
-                    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-nr-environment.cc",
-                    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-params.cc",
-                    SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-params.h",
-                    SIM / "contrib/iboran/model/utils/config_store.py",
-                    SIM / "contrib/iboran/model/iboran_controller/iboran_dapp_mac_scheduler.py",
-                )
-            },
+            "source_sha256": current_source_hashes,
             "started_unix": time.time(),
         }
         (attempt / "run-metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
