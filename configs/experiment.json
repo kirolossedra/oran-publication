@@ -1,31 +1,74 @@
 {
   "campaign_id": "20261111-g1-integrated-v2",
-  "channels": ["all-los", "ue6-nlos"],
-  "mobility_modes": ["stationary", "controlled-linear"],
-  "loads": ["light", "contending", "dl-contending", "ul-contending"],
-  "policies": ["RoundRobin", "TopKCqi"],
-  "seeds": [11, 22, 33, 44, 55],
-  "directions_measured_together": ["DL", "UL"],
+  "channels": [
+    "all-los",
+    "ue6-nlos"
+  ],
+  "mobility_modes": [
+    "stationary",
+    "controlled-linear"
+  ],
+  "loads": [
+    "light",
+    "contending",
+    "dl-contending",
+    "ul-contending"
+  ],
+  "policies": [
+    "RoundRobin",
+    "TopKCqi"
+  ],
+  "seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "directions_measured_together": [
+    "DL",
+    "UL"
+  ],
   "traffic_bps_per_ue_per_direction": {
-    "light": {"DL": 20000, "UL": 20000},
-    "contending": {"DL": 6000000, "UL": 6000000},
-    "dl-contending": {"DL": 6000000, "UL": 20000},
-    "ul-contending": {"DL": 20000, "UL": 6000000}
+    "light": {
+      "DL": 1000000,
+      "UL": 1000000
+    },
+    "contending": {
+      "DL": 50000000,
+      "UL": 50000000
+    },
+    "dl-contending": {
+      "DL": 50000000,
+      "UL": 1000000
+    },
+    "ul-contending": {
+      "DL": 1000000,
+      "UL": 50000000
+    }
   },
   "simulation": {
-    "duration_s": 20.0,
+    "duration_s": 20,
     "application_start_s": 1.1,
-    "receiver_drain_s": 1.0,
+    "receiver_drain_s": 1,
     "packet_payload_bytes": 512,
     "udp": true,
     "repeat_until_source_stop": true,
     "netanim_enabled": false
   },
   "topology": {
-    "gnb_position_m": [250.0, 250.0, 30.0],
+    "gnb_position_m": [
+      250,
+      250,
+      30
+    ],
     "ue_height_m": 1.5,
-    "ue_initial_radius_m": 80.0,
-    "controlled_linear_velocity_m_per_s": [1.0, 0.0, 0.0],
+    "ue_initial_radius_m": 80,
+    "controlled_linear_velocity_m_per_s": [
+      1,
+      0,
+      0
+    ],
     "ue_count": 6,
     "gnb_count": 1
   },
@@ -36,10 +79,10 @@
   },
   "radio": {
     "central_frequency_hz": 3500000000,
-    "bandwidth_hz": 10000000,
+    "bandwidth_hz": 100000000,
     "numerology": 1,
     "tdd_pattern": "DL|DL|DL|DL|F|UL|UL|UL|UL|F|",
-    "backhaul_delay_ms": 10.0
+    "backhaul_delay_ms": 10
   },
   "percentile_method": "linear interpolation, Hyndman-Fan type 7",
   "p99_sample_flag_threshold": 1000,
@@ -52,5 +95,30 @@
     "ul-contending minus light",
     "dl-contending minus ul-contending",
     "TopKCqi minus RoundRobin"
-  ]
+  ],
+  "experiment_intent": {
+    "mode": "high-throughput-ultra-reliable operating-envelope investigation",
+    "purpose": "Find whether high application throughput and high delivery reliability coexist; do not claim URLLC compliance from offered rate",
+    "candidate_offered_rate_sweep_bps_per_ue": [
+      10000000,
+      25000000,
+      50000000,
+      100000000
+    ],
+    "high_load_rate_bps_per_ue_status": "provisional_stress_point_pending_capacity_reliability_calibration",
+    "reliability_metrics": [
+      "pdr",
+      "loss",
+      "deadline_miss_ratio",
+      "received_p95_latency_ms",
+      "received_p99_latency_ms",
+      "actual_rx_goodput_mbps",
+      "backlogged_grant_gap"
+    ],
+    "reliability_target_pdr_exploratory": 0.99999,
+    "reliability_target_scope": "candidate goal only; require confidence interval and sufficient packet counts, do not assert ultra-reliable qualification",
+    "application_latency_deadline_ms": null,
+    "application_latency_deadline_scope": "To be specified by researcher; application latency includes modeled backhaul, not only radio latency",
+    "approval_gate": "No full 160-cell campaign until pilot calibrates rates and reliability"
+  }
 }
