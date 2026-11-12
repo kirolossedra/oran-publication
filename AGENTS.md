@@ -14,6 +14,8 @@ The versioned working package is `campaigns/20261111-g1-integrated-v2/`. Its `so
 bash campaigns/20261111-g1-integrated-v2/scripts/sanity_g1.sh --apply-overrides
 ```
 
+The active execution handoff is [issue #25](https://github.com/kirolossedra/oran-publication/issues/25) ([Codex] G1 high-throughput sanity). When Codex runs this task, document the actual WSL execution command, simulator compilation status, success/failure counts, UL/DL throughput, and starvation verdict there. Merely reading this file or opening the issue does not launch any simulation.
+
 The command validates checksums, saves original differing files, runs focused Python regression tests, rebuilds `ns3iboran_nr` (default `-j 2`), runs a **20-cell diagnostic subset** with `tqdm` progress, invokes the canonical campaign analyzer, and emits a human-readable sanity report and machine-readable CSV/JSON. The 20 cases are the first matched seed: both LOS interventions × both policies × four loads at stationary mobility (16), plus both interventions × both policies under high bidirectional contention with controlled mobility (4). Each case measures **both DL and UL**. This does **not** replace the 160-cell/5-seed campaign and is not publication-grade inference. The runner also uses `tqdm` to show progress in the full campaign; install `tqdm` in the pinned Python environment if unavailable (it has a plain-text fallback).
 
 **High-throughput KPI gate — never omit throughput.** For every scenario, direction, and UE, retain:
