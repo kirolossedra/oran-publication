@@ -40,6 +40,6 @@ The risk labels describe integration surface and dependencies, not delivery-time
 
 1. Use a **whole-cell LOS/NLOS** comparison.
 2. Use **mobility** in the primary setup, retaining the upstream `RandomWalk2d`; an isolated same-seed probe passed, while scenario-level stream repeatability remains unverified.
-3. Restore the exact pinned simulator under ignored `simulator/`. The four source commits match `manifests/environment.json`; the C++ target and bridge binding build succeeded. The locked CPU Torch wheels were downloaded from the Aliyun PyTorch mirror after official-index/CDN HTTPS timeouts; archive SHA256 and import/CPU-operation checks are recorded in the feasibility report. A new Python-runner validation remains outstanding.
+3. Restore the exact pinned simulator under ignored `simulator/`. The four source commits match `manifests/environment.json`; the C++ target and bridge binding build succeeded. The locked CPU Torch wheels were downloaded from the Aliyun PyTorch mirror after official-index/CDN HTTPS timeouts; archive SHA256 and import/CPU-operation checks are recorded in the feasibility report. This completes the RA-ENG-001 feasibility audit; RA-ENG-002 may proceed under the recorded whole-cell and mobility decision.
 
 The primary-literature novelty decision and full experimental protocol remain separate human-owned gates. The source feasibility verdict authorizes only bounded probes; it does not establish the final campaign protocol.

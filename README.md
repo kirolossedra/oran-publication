@@ -30,10 +30,12 @@ The actual executed control path is diagrammed in [the runtime architecture repo
 - [Mission 1 installation report](docs/missions/mission-1-installation.md)
 - [RA-ENG-001 feasibility audit](docs/missions/RA-ENG-001-feasibility.md) · [capability matrix](docs/research/RA-ENG-001-capability-matrix.md) · [technical options](docs/research/RA-ENG-001-technical-options.md)
 - [RA-ENG-001 signal-path diagram](docs/architecture/RA-ENG-001-signal-path.md)
+- [RA-ENG-002 radio/mobility validation report](docs/missions/RA-ENG-002-radio-mobility.md)
+- [KIRO portfolio execution report, issue #24](docs/missions/KIRO-issue-24-execution.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation audit](docs/DOCUMENTATION-AUDIT.md)
 - [Governance](AGENTS.md) · [mission template](templates/MISSION-TEMPLATE.md)
 
 ## Next step
 
-The source-level RA-ENG-001 audit finds a direct whole-cell LOS/NLOS switch and a plausible per-UE building-geometry route, which remains unprobed. It also finds that the default 3GPP channel-condition and small-scale channel update periods are zero, and current offered rates are shared across UEs. The researcher selected whole-cell LOS/NLOS comparisons with mobility. An isolated six-UE C++ probe observed all links return the forced whole-cell condition and identical seed/run mobility traces across two invocations. The pinned CPU Torch wheels were downloaded from the Aliyun PyTorch mirror and installed; Python imports and a CPU tensor operation pass. The new Python run for this audit and grant, traffic, and packet-tail evidence remain outstanding. See [RA-ENG-001](docs/missions/RA-ENG-001-feasibility.md) for per-factor verdicts, remaining evidence and limitations.
+Issue #24 KIRO requests portfolio execution. The execution report records the dependency chain, researcher-owned approval gates, and per-mission status. The old #1–#10 prompts are stale; RA-ENG-001–009 (#14–#22) are the active engineering chain. RA-ENG-001 is complete as a source-feasibility audit; the next authorized engineering work is RA-ENG-002 under the recorded whole-cell LOS/NLOS and mobility scope. CPU Torch is installed and verified; no formal campaign or manuscript claim is made without its required protocol and researcher review.

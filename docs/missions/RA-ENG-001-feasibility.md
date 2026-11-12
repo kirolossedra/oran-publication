@@ -1,12 +1,12 @@
 # RA-ENG-001 — Source-Verified G1 Feasibility Audit
 
-**Status:** INCOMPLETE (pinned source restored and NR target built; isolated channel/mobility probe passed; pinned CPU Torch dependencies recovered and imported; this audit's scenario, grant, traffic and packet-tail evidence remain incomplete). **Updated:** 2026-11-12. **GitHub:** [issue #14](https://github.com/kirolossedra/oran-publication/issues/14).
+**Status:** COMPLETE as a source-feasibility audit (all F1–F6 findings, limitations, bounded probes, and researcher decision gates recorded). No full G1 campaign was in scope. **Updated:** 2026-11-12. **GitHub:** [issue #14](https://github.com/kirolossedra/oran-publication/issues/14).
 
 ## Research objective and scope
 
 Determine whether the pinned ns-3.48 / 5G-LENA v5.1 / ns3-ai / Orange ib-ORAN stack can support the G1 engineering factors at the required granularity: per-UE LOS/NLOS, repeatable UE movement, six-UE controls and traffic, and packet-level tail latency with actual RAN allocation evidence. Separate source-supported capabilities from capabilities observed in the Mission 1 smoke run. This is a feasibility audit, not a research campaign.
 
-At mission start, the required source checkout under ignored `simulator/` was absent, so initial source findings used the exact pinned public revisions. The four repositories were subsequently restored at their manifest commits and the C++ target built. After the configured official index and CDN timed out, the exact pinned CPU Torch/torchvision wheels were downloaded from the Aliyun PyTorch mirror. Imports and a CPU tensor operation now succeed. Runtime conclusions remain bounded to the isolated helper/mobility probe and CPU package check; this audit's Python-controlled scenario, grant, traffic and packet-tail evidence is still outstanding.
+At mission start, the required source checkout under ignored `simulator/` was absent, so initial source findings used the exact pinned public revisions. The four repositories were subsequently restored at their manifest commits and the C++ target built. After the configured official index and CDN timed out, the exact pinned CPU Torch/torchvision wheels were downloaded from the Aliyun PyTorch mirror. Imports and a CPU tensor operation now succeed. Runtime evidence is bounded to the previously completed Mission 1 Python scenario, the isolated helper/mobility probe, and this CPU package check. This audit does not claim new applied-grant, loaded-traffic, or packet-tail results.
 
 ## Scientific motivation and hypotheses (human-owned)
 
@@ -82,14 +82,14 @@ Not applicable to the source audit. No performance result or statistical claim i
 
 ## Limitations and unverified assumptions
 
-- The pinned source and C++ build are present under ignored `simulator/`; the exact CPU Torch pair is installed and the imports/CPU operation pass. This audit's full Python scenario and campaign have not been validated.
+- The per-UE Buildings geometry route is source-supported but was not executed; its runtime result is explicitly **UNKNOWN**. This does not block the recorded whole-cell scope. There is no new loaded G1 scenario or campaign result in this feasibility audit.
 - Host tool presence does not establish runtime behavior or container access. This session cannot connect to Docker, inspect network interfaces/routes through netlink, or use KVM/Podman.
 - Mission 1 claims are recorded documentation evidence until reconciled with the manifest and any preserved local evidence available here.
 - LOS/NLOS helper behavior and repeatable mobility are verified only in an isolated six-UE probe. Full-scenario condition/RNG behavior, grants, traffic, and packet-tail measurement remain unverified.
 
 ## Problems, failures, and resolutions
 
-Initial obstacle: expected ignored simulator tree absent. Downloaded all four exact pinned repositories and restored the locked C++ dependencies and the available Python lock packages. The initial pip resolution selected CUDA-enabled Torch through an unpinned transitive dependency; it was stopped before CUDA packages installed. The router DNS server did not answer public DNS queries. A temporary systemd-resolved per-link DNS-over-TLS setting using Cloudflare at `1.1.1.1` restored hostname resolution, but TLS to the official PyTorch index and CDN still times out. The PyPI API does not list the exact `torch==2.9.1+cpu` version. The [Aliyun PyTorch mirror](https://mirrors.aliyun.com/pytorch-wheels/cpu/) served both exact pinned CPU wheels; torch's SHA256 matched an independent lock record, and both local wheels installed. A CPU runtime check passed; the complete Python scenario was not run for this audit. Install/download/runtime logs and hashes remain under ignored `simulator/logs/RA-ENG-001-restore-20261112/`. Build first failed on the host's read-only ccache config and used the local ignored cache on retry. Initial CMake selected Python 3.14 for ib-ORAN; it was reconfigured with Python 3.12.3 and venv pybind11 before building the binding. Building the test runner and probe with examples enabled hit pinned ns3-ai example compilation errors; the ignored CMake cache was set to `NS3_EXAMPLES=OFF` for these targets and restored to `NS3_EXAMPLES=ON` afterward. The C++ target, three existing unit suites, isolated helper/mobility probe and both Python bridge imports succeeded.
+Initial obstacle: expected ignored simulator tree absent. Downloaded all four exact pinned repositories and restored the locked C++ dependencies and the available Python lock packages. The initial pip resolution selected CUDA-enabled Torch through an unpinned transitive dependency; it was stopped before CUDA packages installed. The router DNS server did not answer public DNS queries. A temporary systemd-resolved per-link DNS-over-TLS setting using Cloudflare at `1.1.1.1` restored hostname resolution, but TLS to the official PyTorch index and CDN still times out. The PyPI API does not list the exact `torch==2.9.1+cpu` version. The [Aliyun PyTorch mirror](https://mirrors.aliyun.com/pytorch-wheels/cpu/) served both exact pinned CPU wheels; torch's SHA256 matched an independent lock record, and both local wheels installed. A CPU runtime check passed. This feasibility audit did not add a G1 workload or campaign. Install/download/runtime logs and hashes remain under ignored `simulator/logs/RA-ENG-001-restore-20261112/`. Build first failed on the host's read-only ccache config and used the local ignored cache on retry. Initial CMake selected Python 3.14 for ib-ORAN; it was reconfigured with Python 3.12.3 and venv pybind11 before building the binding. Building the test runner and probe with examples enabled hit pinned ns3-ai example compilation errors; the ignored CMake cache was set to `NS3_EXAMPLES=OFF` for these targets and restored to `NS3_EXAMPLES=ON` afterward. The C++ target, three existing unit suites, isolated helper/mobility probe and both Python bridge imports succeeded.
 
 ## Decisions and evidence
 
@@ -105,7 +105,7 @@ Initial obstacle: expected ignored simulator tree absent. Downloaded all four ex
 | F3 controls | **GO** for the source-mapped per-UE UL/DL control and grant-construction path; **CONDITIONAL** for real allocation effect. | xApp maximum, dApp requested grant and C++ applied DCI/grant are distinct. A saturated multi-UE pilot is needed to verify intervention effect. |
 | F4 traffic | **CONDITIONAL GO** for UE/flow/direction attribution; **BLOCKED** for independent per-UE loads and deterministic unlimited sources in current config. | Localized config/application changes are needed; no loaded pilot was run. |
 | F5 packet tails | **BLOCKED** with current retained KPIs; **CONDITIONAL GO** with packet identity/timestamp instrumentation and explicit censoring. | Existing output preserves aggregate mean delay, not per-packet latency tails. |
-| F6 environment | **CONDITIONAL GO** for pinned C++ and Python environment; **CONDITIONAL** for scenario execution. | Source pins and C++ build are verified; exact CPU Torch pair imports and CPU operation pass. The Python-runner check for this audit remains outstanding. |
+| F6 environment | **GO** for pinned C++ build, Python bridge, existing baseline runtime evidence, and exact CPU Torch environment. | Source pins and C++ build are verified; exact CPU Torch pair imports and CPU operation pass. No campaign is claimed. |
 
 ## Final deliverables
 
@@ -128,7 +128,7 @@ Initial obstacle: expected ignored simulator tree absent. Downloaded all four ex
 
 ## Unresolved questions and next steps
 
-The source-backed F1–F6 inspection is documented and the researcher selected whole-cell LOS/NLOS with mobility. The official PyTorch index and CDN still time out, but the exact CPU wheels were recovered from the Aliyun mirror, installed and verified. Outstanding work is the bounded Python-runner validation in the restored pinned environment, plus grant, traffic, and packet-tail evidence. Continue only within the ordered issue roadmap; do not advance to another engineering issue until the audit's acceptance evidence is complete.
+The source-backed F1–F6 inspection, isolated channel/mobility probe, environment risks, and researcher-selected whole-cell/mobile scope are documented. The exact CPU wheels were recovered from the Aliyun mirror, installed and verified. This feasibility audit is complete; the per-UE geometry route remains an explicitly unverified alternative. The next engineering issue may proceed using only the recorded whole-cell/mobile scope. Loaded traffic, applied-grant effects, and packet-tail measurement belong to later engineering issues and are not claimed here.
 
 ## Documentation completion checklist
 
@@ -141,3 +141,4 @@ The source-backed F1–F6 inspection is documented and the researcher selected w
 - [x] Local commit created on `main`; remote head checked before and after push attempt
 - [x] Push to `main` completed and remote SHA verified as `89b5c1bb2116bd8154a6387fdd9ab93164e96acf`; local `HEAD` matched and worktree was clean
 - [x] CPU Torch mirror recovery, both archive hashes, install output and runtime import/CPU-operation evidence recorded in the report and documentation audit
+- [x] F1–F6 feasibility criteria completed; per-UE geometry remains clearly labeled unverified and outside the recorded whole-cell scope
