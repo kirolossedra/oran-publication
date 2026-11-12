@@ -41,7 +41,3 @@ It **does not** start the 160-cell research campaign.
 [Agent instructions](AGENTS.md) ·
 [Research protocol](docs/research/experiment-overview.md) ·
 [Codex sanity issue #25](https://github.com/kirolossedra/oran-publication/issues/25)
-
-## Current research direction (revised)
-
-**High delivered throughput with ultra-reliable delivery** is now the goal—not the previously hard-coded 6 Mbps/UE traffic regime. [The experiment configuration](configs/experiment.json) uses provisional 50 Mbps/UE busy-direction traffic, 100 MHz NR, and a 10/25/50/100 Mbps/UE exploratory calibration range. These rates are *offered*, not achieved; no five-nines reliability or deadline guarantee has been demonstrated. The old run cohort is preserved with its former campaign ID. No full campaign is authorized until actual capacity, throughput, packet delivery, and latency can be jointly evaluated.
