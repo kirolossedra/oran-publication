@@ -4,7 +4,10 @@
 pinned Orange ib-ORAN revision. These tracked paths are identical on
 GitHub and WSL. `SHA256SUMS` records reviewed file hashes.
 
-The simulator at `simulator/ns-3.48/contrib/iboran/model/` is an
+The overlay also includes the modified shared RAN header, campaign
+launcher, and base YAML where those full files are part of the experiment's
+build or runtime configuration. The simulator at
+`simulator/ns-3.48/contrib/iboran/model/` is an
 **ignored local dependency checkout**, not another GitHub source export.
 Each file here maps to the identical `model/` relative path in the
 installed ib-ORAN tree. [sanity.py](../../../experiment-scripts/sanity.py)

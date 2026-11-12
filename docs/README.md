@@ -11,3 +11,5 @@
 is currently mandatory **before any pull/build/sanity**.
 Executable scripts have their own [index](../experiment-scripts/README.md).
 Configurations have their own [index](../configs/README.md).
+Current [mission status](MISSIONS.md), [mission report index](history/missions/README.md),
+and [documentation audit](DOCUMENTATION-AUDIT.md) track issue #25.

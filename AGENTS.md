@@ -44,8 +44,10 @@ bash experiment-scripts/sanity.sh --apply-overrides
 ```
 
 The command validates and backs up source overrides, runs tests, rebuilds
-only `ns3iboran_nr`, then executes a **20-case one-seed** subset with
-`tqdm`, analyses all UE/direction outputs, and emits
+only `ns3iboran_nr`, then runs an eight-cell matched all-LOS stationary
+rate calibration at 10/25/50/100 Mbps per UE before it executes a **20-case
+one-seed** subset with `tqdm`. It analyses the calibration and all sanity
+UE/direction outputs, and emits
 `sanity-summary.md`, `sanity-throughput-by-scenario.csv`,
 `sanity-per-ue.csv`, `sanity-starvation.csv`, and
 `sanity-verdict.json` in isolated timestamped locations.

@@ -10,3 +10,5 @@
 
 Read these for traceability, **not** as current runnable instructions.
 [Current execution](../../../experiment-scripts/README.md).
+
+Current issue #25 work is tracked in [RA-ENG-010](issue-25-recovery-calibration.md) and [docs/MISSIONS.md](../../MISSIONS.md).

@@ -23,7 +23,7 @@ from model.iboran_controller.iboran_dapp_algos.dapp_algo_ue_selection_round_robi
 from model.iboran_controller.iboran_dapp_algos.dapp_algo_ue_selection_top_k import (
     DAppAlgoUeSelectionTopK,
 )
-from run_campaign import plan, pilot_block, latest_success, attempt_number
+from run_campaign import plan, pilot_block, reliability_calibration_block, latest_success, attempt_number
 from analyze_campaign import unique_planned_cells
 
 
@@ -80,6 +80,17 @@ class TestSchedulerFixes(unittest.TestCase):
         self.assertEqual({c["mobility"] for c in selected}, {"stationary"})
         self.assertEqual({c["load"] for c in selected}, {"light", "contending"})
         self.assertEqual({c["policy"] for c in selected}, {"RoundRobin", "TopKCqi"})
+
+    def test_reliability_calibration_is_eight_matched_rate_policy_cells(self):
+        selected = reliability_calibration_block()
+        self.assertEqual(len(selected), 8)
+        self.assertEqual({c["seed"] for c in selected}, {11})
+        self.assertEqual({c["channel"] for c in selected}, {"all-los"})
+        self.assertEqual({c["mobility"] for c in selected}, {"stationary"})
+        self.assertEqual({c["calibration_rate_bps"] for c in selected},
+                         {10_000_000, 25_000_000, 50_000_000, 100_000_000})
+        self.assertEqual({c["policy"] for c in selected}, {"RoundRobin", "TopKCqi"})
+        self.assertTrue(all(c["directions"] == ["DL", "UL"] for c in selected))
 
     def test_directional_cells_are_subset_not_extras(self):
         base = plan()
