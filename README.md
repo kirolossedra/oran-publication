@@ -25,3 +25,21 @@ The exact runner, analysis code, configuration, full editable source copies for 
 RA-ENG-004's bounded instrumentation validation is an engineering check, separate from the integrated v2 campaign. The campaign's own runner, full source overrides, and analyzer are the source for campaign results. The short RA-ENG-004 checks do not replace or augment the campaign dataset. No campaign-wide result is claimed until remaining cells, analysis, sample-count review, and documentation are complete.
 
 **Scheduler audit update:** The [v2 campaign package](campaigns/20261111-g1-integrated-v2/README.md#independent-scheduler-and-analysis-corrections-2026-11-11) now includes fixes for RoundRobin's 10.24-second service-history defect, TopKCqi equal-score tie bias, CQI input-state observability, campaign provenance, and analysis accounting. These fixes change policy behavior; existing run artifacts are retained but must not be pooled with corrected runs. The GitHub source copies must be applied and rebuilt in WSL before new runs.
+
+## Sanity-first execution
+
+Before any further full 160-run execution, use the
+[bounded 20-cell high-throughput sanity gate](campaigns/20261111-g1-integrated-v2/README.md#one-command-high-throughput-sanity-gate-before-the-full-campaign).
+On the provisioned WSL machine, after reviewing working-source differences and
+ensuring no campaign is active:
+
+```bash
+bash campaigns/20261111-g1-integrated-v2/scripts/sanity_g1.sh --apply-overrides
+```
+
+This builds the NR target, runs regressions, and reports actual UL/DL offered
+load, application TX throughput, received goodput, MAC throughput, packet loss
+and latency percentiles, CQI/MCS, queues, applied grants, fairness and starvation.
+It uses `tqdm` progress and isolated append-only raw artifacts. The tool is
+committed to GitHub; its simulator results are **not** verified until executed
+in the provisioned WSL environment.
