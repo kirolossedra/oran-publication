@@ -31,3 +31,43 @@ The runner uses `simulator/ns-3.48/.venv/bin/python`, resumes successful cells w
 ## Measurement scope
 
 Each run measures both DL and UL, all-LOS versus selective UE6 NLOS, stationary versus controlled linear movement, four offered-load arms, two ib-ORAN dApp UE-selection policies, and five matched seeds. Packet-level application delay includes the modeled backhaul and is not pure RAN scheduling delay. P99 summaries require sample-count review. Forced NLOS is a synthetic channel condition, not an obstacle-crossing model.
+
+## Independent scheduler and analysis corrections (2026-11-11)
+
+This GitHub package includes reviewed fixes for a **RoundRobin selection bug**:
+previously served UEs were assigned stored monotonic service timestamps in
+milliseconds while never-served UEs were initialized from the wrapping NR
+frame/subframe counter. Several unserved UEs received their first grant only
+after the 10.24-second SFN wrap. The corrected implementation prioritizes
+never-served candidates, followed by the least recently served, using one
+monotonic nanosecond time base.
+
+TopKCqi remains greedy by primary metric. The patch changes only equal-score
+tie breaking to least recently served then RNTI; it **does not** guarantee
+fairness with `k=1` when CQIs differ. It is a **modified benchmark**, not the
+unaltered upstream TopKCqi. CQI input-state changes are logged separately to
+`logs/mac-cqi-input-state.csv` without modifying CQI/MCS control; DL CQI zero
+is explicitly ambiguous, not conclusively proof of missing feedback.
+
+The analyzer deduplicates directional-extension cells (160 unique scenarios,
+not 240), selects attempts numerically, checks populated measurement files,
+and rejects attempts recorded against different source hashes. The runner
+includes both selection-policy files in per-attempt provenance. Prior runs
+remain intact but **must not be pooled** with runs using these corrections.
+
+To apply the committed code to the separate WSL simulator checkout, **after
+stopping or finishing any active campaign**, sync the GitHub repository, then
+copy the edited files from `source-overrides/model/` to the matching paths
+under `simulator/ns-3.48/contrib/iboran/model/`. Rebuild the NR target and
+run the regression suite:
+
+```sh
+python3 -m unittest discover -s campaigns/20261111-g1-integrated-v2/tests -v
+cd simulator/ns-3.48
+./ns3 build ns3iboran_nr -j 2
+```
+
+The GitHub update is **not** an update to the running WSL instance. No
+post-fix NR compilation or simulation is claimed by this commit; validate
+those after syncing. `source-overrides/SHA256SUMS` covers the corrected
+copied source files.
