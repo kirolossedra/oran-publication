@@ -4,7 +4,7 @@
 
 ## Objective and scope
 
-Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–003 were completed and closed before this report update. RA-ENG-004 (#17) has now been implemented, bounded-validated, and safely replayed on top of the newer researcher-authored `origin/main` campaign snapshot; push verification and GitHub issue closure remain.
+Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–004 (#14–#17) are completed and closed; RA-ENG-004 is published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified.
 
 ## Dependency model
 
@@ -39,19 +39,18 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 | Issue | Mission | Status | Evidence or gate |
 |---:|---|---|---|
 | #14–#16 | RA-ENG-001–003 | Closed complete | Prior reports remain in history through commit `fcb460f8ec3098372605635a5c40b823faff1d2d`. |
-| #17 | RA-ENG-004 | Implementation and bounded validation complete; push verification pending | [Mission report](RA-ENG-004-instrumentation.md), [schema](../methodology/g1-packet-grant-metrics.md), raw `simulator/logs/RA-ENG-004-20261112/`. Issue remains open until publication and evidence comment. |
+| #17 | RA-ENG-004 | Closed complete | [Mission report](RA-ENG-004-instrumentation.md), [schema](../methodology/g1-packet-grant-metrics.md), raw `simulator/logs/RA-ENG-004-20261112/`; commit `b75c578` is remote-verified. |
 | #18 | RA-ENG-005 | Not started | Requires #17 and load evidence; formal choices remain researcher-owned. |
 | #19 | RA-ENG-006 | Not started | Requires contention calibration and scope-specific checks. |
 | #20 | RA-ENG-007 | Protocol gate / campaign in progress | Researcher-authored v2 matrix exists; issue acceptance and campaign completion still require review. |
 | #21 | RA-ENG-008 | In progress in v2 package; not complete | 68 of 160 matrix cells remained at latest package snapshot; analysis and sample-count review pending. |
 | #22 | RA-ENG-009 | Researcher review gate | Requires reviewed analysis and authorized claims. |
-| #24 | KIRO | In progress | RA-ENG-004 is rebased on the campaign snapshot; complete safe publication and continue eligible technical missions while honoring remaining review gates. |
+| #24 | KIRO | In progress | RA-ENG-004 is closed. The integrated campaign remains in progress at 92/160 successful cells; continue eligible technical missions while honoring remaining review gates. |
 
 ## Next actions and stop conditions
 
-1. Push the safe fast-forward RA-ENG-004 commit onto current researcher-authored `main`, retaining the campaign package and required mission navigation and ignore rules.
-2. Publish and verify RA-ENG-004, then update issue #17 with its actual bounded validation and limitations.
-3. Continue eligible technical items under the user's portfolio instruction without altering campaign protocol or substituting smoke runs for formal results.
+1. Continue eligible technical items under the user's portfolio instruction without altering campaign protocol or substituting smoke runs for formal results.
+2. Keep RA-ENG-005 calibration choices within the issue's human-owned scientific boundaries.
 4. Leave formal scientific claims and publication readiness to researcher review; report all remaining cells, failures, and uncertainty as observed.
 
 ## Reproduction references

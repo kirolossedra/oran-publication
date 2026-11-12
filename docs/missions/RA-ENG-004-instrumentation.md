@@ -1,6 +1,6 @@
 # Mission RA-ENG-004 — packet delay, loss, and per-UE grant telemetry
 
-**Status:** IN PROGRESS. **Date:** 2026-11-12. **Issue:** [#17 — RA-ENG-004](https://github.com/kirolossedra/oran-publication/issues/17).
+**Status:** COMPLETE. **Date:** 2026-11-12. **Issue:** [#17 — RA-ENG-004 (closed)](https://github.com/kirolossedra/oran-publication/issues/17).
 
 ## Research objective and scope
 
@@ -100,13 +100,12 @@ Attempt 1 payload and wildcard-address defects are described above and retained.
 
 ## Final deliverables
 
-Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scenario configs, source replay patches, raw run evidence, and methodology documentation. Local commit `9b2582f` is a safe descendant of researcher commit `9a8697c`; push verification and issue closure remain.
+Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scenario configs, source replay patches, raw run evidence, and methodology documentation. Delivery is published in `b75c5784d0ab928080037f6afa22ab97af359e10`; remote `main` matched that SHA on verification. GitHub issue #17 was updated with evidence and closed as completed.
 
 ## Unresolved questions and next steps
 
-1. Push the safe fast-forward to `main` and verify the remote SHA.
-2. Post issue #17 evidence and close it only after confirming publication.
-3. Proceed to RA-ENG-005 (#18) only within its issue scope; preserve researcher-controlled protocol and interpretation gates.
+1. RA-ENG-005 (#18) is the next technical issue in the portfolio; follow its own approval and scientific-choice boundaries.
+2. Keep the integrated campaign outputs distinct from the bounded instrumentation runs; preserve researcher-owned interpretation.
 
 ## Documentation completion checklist
 
@@ -116,4 +115,4 @@ Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scena
 - [x] README, mission index, and audit updated
 - [x] Paths, claims, parameters, and reproduction commands checked
 - [x] Staged file/size/secret/source-tree audit passed
-- [ ] Commit created and pushed to `main`; remote SHA verified
+- [x] Commit created and pushed to `main`; remote SHA verified
