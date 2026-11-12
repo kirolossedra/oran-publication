@@ -10,6 +10,7 @@ import json
 import math
 from pathlib import Path
 import statistics
+import argparse
 
 from run_g1_integrated_campaign import outcome_source_hashes, has_data_rows, SPEC_PATH
 
@@ -84,6 +85,15 @@ def unique_planned_cells(base: list[dict], extension: list[dict]) -> dict[str, d
 
 
 def main():
+    global CAMPAIGN, OUT
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--campaign-root", type=Path, default=CAMPAIGN)
+    parser.add_argument("--output-dir", type=Path, default=OUT)
+    args = parser.parse_args()
+    CAMPAIGN = args.campaign_root.resolve()
+    OUT = args.output_dir.resolve()
+    if OUT.exists() and any(OUT.iterdir()):
+        raise SystemExit(f"refusing to overwrite nonempty analysis output directory: {OUT}")
     OUT.mkdir(parents=True, exist_ok=True)
     attempt_dirs = sorted(CAMPAIGN.glob("cells/*/attempt-*"))
     audit, ue_rows, grant_rows, demand_rows = [], [], [], []
