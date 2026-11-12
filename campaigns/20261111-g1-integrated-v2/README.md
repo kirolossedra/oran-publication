@@ -4,7 +4,7 @@ This folder is the versioned code/configuration package for the integrated six-U
 
 ## Status snapshot
 
-At packaging time, the local run manifest showed 90 of 160 planned matrix cells completed successfully, no recorded nonzero exits, and two incomplete attempt directories preserved. Seventy cells had not yet completed. These are execution counts, not research findings; the campaign and analysis remain incomplete.
+At this package snapshot, the local run manifest showed 92 of 160 planned matrix cells completed successfully, no recorded nonzero exits, and two incomplete attempt directories preserved. Sixty-eight cells had not yet completed. These are execution counts, not research findings; the campaign and analysis remain incomplete.
 
 Earlier v1 packet PDR and latency outputs are excluded because packet tags did not provide reliable per-datagram identity. The limitation is described in [`docs/INSTRUMENTATION-LIMITATION.md`](docs/INSTRUMENTATION-LIMITATION.md). No raw simulation outputs are included in this package. They remain locally under `simulator/runs/20261111-g1-integrated-v2/` and must be retained with their run-specific logs.
 
@@ -13,12 +13,13 @@ Earlier v1 packet PDR and latency outputs are excluded because packet tags did n
 - `config/g1-integrated-campaign.json`: predeclared 160-cell matrix, traffic levels, seeds, geometry, and simulation parameters.
 - `scripts/run_g1_integrated_campaign.py`: resumable runner. Each attempt is written to a unique directory.
 - `scripts/analyze_g1_integrated_campaign.py`: packet/MAC data processing and paired-seed analysis.
-- `patches/RA-ENG-G1-packet-observation.patch`: application header instrumentation against pinned Orange `ns3-iboran` commit `3ea5046389f0eb993cdf01ef6d6d33017e6921bb`.
+- `source-overrides/`: complete, directly editable copies of every ib-ORAN source file modified for this campaign; these are full source files, not diffs. `SHA256SUMS` records their local contents.
+- [`UPSTREAM-SOURCES.md`](UPSTREAM-SOURCES.md): exact public source repositories and commits for ns-3, 5G-LENA NR, ns3-ai, and Orange ib-ORAN.
 - `docs/INSTRUMENTATION-LIMITATION.md`: explains why the earlier packet metrics are not used.
 
 ## Reproduction
 
-The pinned ns-3.48, 5G-LENA, ns3-ai, and Orange ib-ORAN environment is installed separately under `simulator/` and is excluded from Git. After provisioning that environment and applying the recorded project patches, run from the repository root:
+The full upstream library sources are available at the exact repositories and commits in `UPSTREAM-SOURCES.md`. The campaign's edited ib-ORAN files are included here as complete source copies. To restore them, copy `source-overrides/model/...` over the matching paths in `simulator/ns-3.48/contrib/iboran/`. The local build, virtual environment, logs, and raw runs are excluded. After provisioning the pinned environment and restoring the source copies, run from the repository root:
 
 ```sh
 python3 campaigns/20261111-g1-integrated-v2/scripts/run_g1_integrated_campaign.py
