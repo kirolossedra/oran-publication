@@ -4,7 +4,7 @@ This folder is the versioned code/configuration package for the integrated six-U
 
 ## Status snapshot
 
-At this package snapshot, the local run manifest showed 92 of 160 planned matrix cells completed successfully, no recorded nonzero exits, and two incomplete attempt directories preserved. Sixty-eight cells had not yet completed. These are execution counts, not research findings; the campaign and analysis remain incomplete.
+The approved matrix completed locally on 2026-11-12: 160 of 160 planned cells have complete measurements matching the corrected source hashes. Seven failed/interrupted pilot attempts are preserved and explicitly excluded. The final run audit and analysis live in the ignored local raw tree and curated results at `../../results/RA-ENG-008-20261112-audited-v3/`; raw simulator output is not committed. Counts indicate execution and data integrity, not scientific findings or novelty.
 
 Earlier v1 packet PDR and latency outputs are excluded because packet tags did not provide reliable per-datagram identity. The limitation is described in [`docs/INSTRUMENTATION-LIMITATION.md`](docs/INSTRUMENTATION-LIMITATION.md). No raw simulation outputs are included in this package. They remain locally under `simulator/runs/20261111-g1-integrated-v2/` and must be retained with their run-specific logs.
 
@@ -26,7 +26,7 @@ python3 campaigns/20261111-g1-integrated-v2/scripts/run_g1_integrated_campaign.p
 python3 campaigns/20261111-g1-integrated-v2/scripts/analyze_g1_integrated_campaign.py
 ```
 
-The runner uses `simulator/ns-3.48/.venv/bin/python`, resumes successful cells with the matching serialized-header schema, and writes raw artifacts to `simulator/runs/20261111-g1-integrated-v2/`. The analyzer writes processed tables and figures to `results/20261111-g1-integrated-v2/`. Do not infer final results from the status snapshot above.
+The runner uses `simulator/ns-3.48/.venv/bin/python`, resumes successful cells with the matching serialized-header schema, and writes raw artifacts to `simulator/runs/20261111-g1-integrated-v2/`. The analyzer writes processed tables and figures to the directory supplied via `--output-dir`; for the audited analysis see `results/RA-ENG-008-20261112-audited-v3/`. Do not infer scientific conclusions from execution counts.
 
 ## Measurement scope
 
@@ -67,7 +67,8 @@ cd simulator/ns-3.48
 ./ns3 build ns3iboran_nr -j 2
 ```
 
-The GitHub update is **not** an update to the running WSL instance. No
-post-fix NR compilation or simulation is claimed by this commit; validate
-those after syncing. `source-overrides/SHA256SUMS` covers the corrected
-copied source files.
+The GitHub package and local WSL simulator are distinct. The RA-ENG-007
+report records the local post-fix compilation, source application, campaign
+runs, and analysis evidence; a new device must apply the manifest, rebuild,
+and reproduce runs before relying on local artifacts. `source-overrides/SHA256SUMS`
+covers the corrected copied source files.

@@ -18,6 +18,12 @@ __pycache__/
 !/results/raw/README.md
 /results/figures/*
 !/results/figures/README.md
+# Superseded/interrupted RA-ENG-008 analysis passes; audited-v3 is curated instead
+/results/20261111-g1-integrated-v2/
+/results/RA-ENG-007-20261112-full-analysis/
+/results/RA-ENG-008-20261112-audited/
+/results/RA-ENG-008-20261112-audited-v2/
+/results/RA-ENG-008-20261112-final/
 /logs/*
 !/logs/README.md
 *.pcap*
