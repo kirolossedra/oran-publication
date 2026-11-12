@@ -75,6 +75,17 @@ def analyze(attempt,spec):
                 item["bytes"]+=int(row["bytes"])
                 item["delays"].append((rx_seconds-tx_seconds)*1000)
                 item["late"]+=int(phase(rx_seconds,start,end)!=bucket)
+    grants=defaultdict(list)
+    unmapped_grants=0
+    for grant in csvfile(attempt/"logs/mac-grants.csv"):
+        grant_dir=link(grant["direction"])
+        matches=owners.get((int(grant["rnti"]),grant_dir),set())
+        if len(matches)!=1:
+            unmapped_grants+=1
+            continue
+        grant_ue=next(iter(matches))
+        grant_phase=phase(int(grant["time_ns"])/1e9,start,end)
+        grants[(grant_ue,grant_dir,grant_phase)].append(grant)
     cqi=defaultdict(list)
     for sample in csvfile(attempt/"logs/mac-demand.csv"):
         direction=link(sample["direction"])
@@ -90,6 +101,7 @@ def analyze(attempt,spec):
             for bucket,(begin,finish) in windows.items():
                 item=outcome[(ue,direction,bucket)]
                 samples=cqi[(ue,direction,bucket)]
+                applied=grants[(ue,direction,bucket)]
                 channel="NLOS" if (cell["channel"]=="ue-transition" and
                                    ue==spec["topology"]["target_ue_index"] and
                                    bucket=="nlos-window") else "LOS"
@@ -106,7 +118,12 @@ def analyze(attempt,spec):
                     "p99_received_count":len(item["delays"]),
                     "received_after_phase":item["late"],
                     "mean_mac_reported_cqi":mean(samples) if samples else None,
-                    "cqi_samples":len(samples)
+                    "cqi_samples":len(samples),
+                    "applied_grant_count":len(applied),
+                    "allocated_prbs":sum(int(x.get("prb_count") or 0) for x in applied),
+                    "granted_transport_bytes":sum(int(x.get("tbs_bytes") or 0) for x in applied),
+                    "mean_grant_mcs":mean([float(x["mcs"]) for x in applied]) if applied else None,
+                    "unmapped_grant_count_run":unmapped_grants
                 })
     return output
 
