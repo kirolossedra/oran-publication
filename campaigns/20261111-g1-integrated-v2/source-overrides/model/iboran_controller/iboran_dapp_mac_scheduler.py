@@ -150,9 +150,8 @@ class IbOranDAppMacScheduler(IbOranDApp):
                         + 1e-9  # to avoid zero throughput
                     )
 
-                self._hist_link_rnti_subframe[link][rnti] = (
-                    e3Indication.timestamp // 1_000_000
-                )  # ms
+                # One monotonic time base; NR SFN wraps every 10.24 seconds.
+                self._hist_link_rnti_subframe[link][rnti] = int(e3Indication.timestamp)
 
                 if self.save_log:
                     self.store.append(
@@ -281,7 +280,7 @@ class IbOranDAppMacScheduler(IbOranDApp):
         self.mcs_assigner = McsAssigner(rat_type=self.rat_type)
 
         self._hist_link_rnti_tps = self._per_link(dict)  # for 'PropFairness' algos
-        self._hist_link_rnti_subframe = self._per_link(dict)  # for 'RoundRobin' algos
+        self._hist_link_rnti_subframe = self._per_link(dict)  # last selected, absolute simulation nanoseconds
         self._rbg_bounds = self._per_link(
             dict
         )  # persistent xApp bounds: rnti -> max RBG
