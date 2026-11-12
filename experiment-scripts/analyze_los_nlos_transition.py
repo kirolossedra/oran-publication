@@ -112,7 +112,7 @@ def analyze(attempt,spec):
                     "tx_packets":item["tx"],"rx_packets":item["rx"],
                     "not_received_by_stop":item["tx"]-item["rx"],
                     "delivery_fraction":item["rx"]/item["tx"] if item["tx"] else None,
-                    "received_goodput_mbps":item["bytes"]*8/((finish-begin)*1e6),
+                    "tx_cohort_delivered_mbps":item["bytes"]*8/((finish-begin)*1e6),
                     "p95_received_ms":percentile(item["delays"],0.95),
                     "p99_received_ms":percentile(item["delays"],0.99),
                     "p99_received_count":len(item["delays"]),
