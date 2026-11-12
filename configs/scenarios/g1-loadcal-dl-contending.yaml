@@ -1,0 +1,37 @@
+rat_type: NR
+common:
+  simTime: 10.0
+  simAreaLength: 500.0
+  ueNum: 6
+  xnbNum: 1
+  enableDlFlow: false
+  enableUlFlow: false
+  rngRun: 11
+  mobilityMode: Fixed
+  trafficMode: Udp
+  enablePacketTelemetry: true
+  enableRadioMobilityTrace: true
+  radioMobilityTracePeriodSeconds: 1.0
+  ueTraffic:
+    - {ueIndex: 0, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 20000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+    - {ueIndex: 1, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 6000000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+    - {ueIndex: 2, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 6000000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+    - {ueIndex: 3, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 6000000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+    - {ueIndex: 4, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 6000000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+    - {ueIndex: 5, enableUl: true, enableDl: true, ulBitRate: 20000, dlBitRate: 6000000, ulPacketSize: 512, dlPacketSize: 512, startTime: 1.0, stopTime: 8.0, sinkStopTime: 9.0}
+nr:
+  centralFrequency: 3.5e9
+  bandwidth: 10e6
+  numCc: 1
+  numBwp: 1
+  numerology: 1
+  tddPattern: "DL|DL|DL|DL|F|UL|UL|UL|UL|F|"
+  channelCondition: LOS
+orchestrator:
+  k: 1
+  dapp_control_period_sf: 1
+  xapp_control_period_f: 1
+  dapp_algo_ue_selection: RoundRobin
+  xapp_algo_rbg_bounding: Bypass
+  save_dapp_log: true
+  verbose: false

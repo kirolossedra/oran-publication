@@ -13,6 +13,8 @@ The exact runner, analysis code, configuration, full editable source copies for 
 - [Mission status and dependency ledger](docs/MISSIONS.md)
 - [RA-ENG-004 packet/grant instrumentation report](docs/missions/RA-ENG-004-instrumentation.md)
 - [RA-ENG-005 load calibration report](docs/missions/RA-ENG-005-load-calibration.md)
+- [RA-ENG-005 load-calibration method and results](docs/methodology/g1-load-calibration.md)
+- [RA-ENG-005 per-UE summary and DL/UL figures](results/RA-ENG-005/)
 - [Packet/grant metric schema](docs/methodology/g1-packet-grant-metrics.md)
 - [Documentation audit](docs/DOCUMENTATION-AUDIT.md)
 - [Campaign v2 validation package](campaigns/20261111-g1-integrated-v2/README.md)

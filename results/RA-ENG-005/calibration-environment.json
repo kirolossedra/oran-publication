@@ -1,0 +1,21 @@
+{
+  "observed_utc_date": "2026-11-12",
+  "os": "Linux-7.0.0-42-generic-x86_64-with-glibc2.39",
+  "architecture": "x86_64",
+  "logical_cpus": 20,
+  "memory_bytes": 33264480256,
+  "available_storage_before_runs_gib": 494,
+  "python": "3.12.3",
+  "pytorch": "2.9.1+cpu",
+  "cuda_available": false,
+  "numpy": "2.5.4",
+  "pyyaml": "6.0.3",
+  "matplotlib": "3.11.2",
+  "pins": {
+    "ns-3.48": "d2add90b452d600cfb4859baed8e9ea633519447",
+    "5G-LENA-NR-v5.1": "cedceadda17392c90587fb9400eb9b1f8c236713",
+    "ns3-ai": "b8c9858294b1d6a7f122b5154a3ce25057a54740",
+    "Orange-ib-ORAN": "3ea5046389f0eb993cdf01ef6d6d33017e6921bb"
+  },
+  "standard_environment_manifest": "manifests/environment.json absent in this repository snapshot; pins read from campaigns/20261111-g1-integrated-v2/UPSTREAM-SOURCES.md"
+}

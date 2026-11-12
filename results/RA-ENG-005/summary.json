@@ -1,0 +1,19 @@
+{
+  "cases": [
+    "target-only",
+    "low-six",
+    "dl-contending",
+    "ul-contending"
+  ],
+  "flow_rows": 38,
+  "unmatched_grant_rows": 448,
+  "mac_demand_direction_code_mapping": {
+    "0": "DL",
+    "1": "UL"
+  },
+  "metric_semantics": {
+    "missing_by_sink_stop_packets": "generated unique TX packets without a matched RX by sink stop; not classified as physical-layer loss",
+    "grant_allocated_prb_sum": "sum of applied grant PRB counts; not airtime or unique spectrum bandwidth",
+    "unmatched_grants": "retained separately because applied-grant RNTI did not match per-UE end-of-run mapping"
+  }
+}

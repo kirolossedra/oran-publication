@@ -1,0 +1,25 @@
+diff --git a/model/iboran_controller/iboran_dapp_mac_scheduler.py b/model/iboran_controller/iboran_dapp_mac_scheduler.py
+index 400da9d..1db43cc 100644
+--- a/model/iboran_controller/iboran_dapp_mac_scheduler.py
++++ b/model/iboran_controller/iboran_dapp_mac_scheduler.py
+@@ -11,0 +12 @@ import numpy as np
++import os
+@@ -51,0 +53,18 @@ class IbOranDAppMacScheduler(IbOranDApp):
++        # Record the demand observed by the dApp at every control opportunity,
++        # independently of which UE the policy selects.
++        run_root = os.environ.get("IBORAN_RUN_DIR")
++        if run_root:
++            demand_path = os.path.join(run_root, "logs", "mac-demand.csv")
++            if not getattr(self, "_demand_header_written", False):
++                with open(demand_path, "w") as demand_file:
++                    demand_file.write("time_ns,rnti,direction,buffer_bytes,cqi,achievable_rate_mbps,actual_throughput_mbps\n")
++                self._demand_header_written = True
++            with open(demand_path, "a") as demand_file:
++                for idx in range(int(e3Indication.numUe)):
++                    ue = e3Indication.ue[idx]
++                    demand_file.write(
++                        f"{int(e3Indication.timestamp)},{int(ue.rnti)},{int(link)},"
++                        f"{int(ue.bufferLevel)},{int(ue.cqi)},{float(ue.achievableRate):.6f},"
++                        f"{float(ue.actualThroughput):.6f}\n"
++                    )
++
