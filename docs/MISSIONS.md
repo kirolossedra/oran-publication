@@ -4,7 +4,7 @@
 |---|---:|---|---|
 | RA-ENG-001–003 | #14–#16 | Completed and closed | Prior reports and evidence are retained in Git history through `fcb460f8ec3098372605635a5c40b823faff1d2d`. |
 | RA-ENG-004 | #17 | Closed complete | [Instrumentation report](missions/RA-ENG-004-instrumentation.md), [metric schema](methodology/g1-packet-grant-metrics.md), raw evidence under ignored `simulator/logs/RA-ENG-004-20261112/`; published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. |
-| RA-ENG-005 | #18 | Not started | Requires RA-ENG-004 and source-grounded load calibration; final scientific load choices remain researcher-owned. |
+| RA-ENG-005 | #18 | In progress | [Pre-implementation report](missions/RA-ENG-005-load-calibration.md) is created; source audit and load evidence review are next. Final scientific load choices remain researcher-owned. |
 | RA-ENG-006 | #19 | Not started | Requires contention calibration. |
 | RA-ENG-007 | #20 | Researcher protocol gate | Do not start a formal comparison until its acceptance gate is satisfied. |
 | RA-ENG-008 | #21 | Awaiting campaign outputs | Analyze only validated, traceable campaign runs. |

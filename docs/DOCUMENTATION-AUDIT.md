@@ -16,6 +16,10 @@ The first local delivery commit was `43e173d`; after safe replay on the latest s
 
 The latest campaign README reports 92/160 successful cells at packaging, two incomplete attempts, and 68 not completed. The editable source overrides and source-map checksums are part of that package. Its analysis and results remain in progress; the invalidated v1 packet-tag latency/PDR summaries are explicitly excluded. This audit does not treat the RA-ENG-004 smoke runs as campaign results and does not claim formal campaign completion.
 
+## RA-ENG-005 load calibration pre-implementation gate
+
+The template-based [RA-ENG-005 report](missions/RA-ENG-005-load-calibration.md) was created before source inspection. The campaign v2 runner and analyzer expose configured per-UE rates, packet events, applied grants, and MAC demand records; the dApp trace records buffer bytes, CQI, achievable rate, and actual throughput at each control opportunity. This is source/code availability only: no campaign v2 raw run directories are present in this local workspace, so the remote package's 92 successful-cell count cannot be analyzed here. Disk check before additional runs found 494 GiB available. Detailed compatibility, per-UE target-only traffic construction, and bounded calibration design remain under audit; no #18 source changes or runs are claimed yet.
+
 ## Audit checks already performed for RA-ENG-004 delivery
 
 - Three synthetic tests passed; pinned target build succeeded.

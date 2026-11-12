@@ -5,6 +5,7 @@
 - [Campaign v2 instrumentation limitation](../campaigns/20261111-g1-integrated-v2/docs/INSTRUMENTATION-LIMITATION.md)
 - [Mission status ledger](MISSIONS.md)
 - [RA-ENG-004 packet/grant instrumentation report](missions/RA-ENG-004-instrumentation.md)
+- [RA-ENG-005 six-UE load calibration report](missions/RA-ENG-005-load-calibration.md)
 - [Packet/grant metric schema](methodology/g1-packet-grant-metrics.md)
 - [Documentation audit](DOCUMENTATION-AUDIT.md)
 - [Repository governance](../AGENTS.md) · [mission template](../templates/MISSION-TEMPLATE.md)
