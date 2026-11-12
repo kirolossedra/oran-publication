@@ -71,3 +71,45 @@ The GitHub update is **not** an update to the running WSL instance. No
 post-fix NR compilation or simulation is claimed by this commit; validate
 those after syncing. `source-overrides/SHA256SUMS` covers the corrected
 copied source files.
+
+## One-command high-throughput sanity gate (before the full campaign)
+
+On the **provisioned WSL2 machine**, after stopping any active simulation and
+reviewing local source differences:
+
+```bash
+bash campaigns/20261111-g1-integrated-v2/scripts/sanity_g1.sh --apply-overrides
+```
+
+This verifies the committed source checksums, backs up the local simulator files
+before applying the reviewed override copies, runs focused Python regressions,
+rebuilds only `ns3iboran_nr`, and executes a **20-cell first-seed sanity subset**
+using `tqdm` progress. It measures both UL and DL in each run: all four loads
+(light, bidirectional-contending, DL-contending, UL-contending) at stationary
+mobility for both channels and policies, plus high-load controlled-motion
+cross-checks. It is explicitly **not** the full 160-cell campaign.
+
+It invokes the same canonical analysis code in an isolated, timestamped
+sanity result directory. The command exits nonzero if the Python/build/simulation
+stages fail, source provenance is incompatible, required measurements are
+missing, channel/mobility audit fails, or a RoundRobin UE experiences an observed
+backlogged grantless interval of at least one second. TopKCqi `k=1` starvation
+is separately reported, **not** used as an automatic policy failure.
+
+Expected files in `results/20261111-g1-integrated-v2-sanity/<timestamp>/`:
+
+| Output | What it proves or measures |
+|---|---|
+| `sanity-summary.md` | High-throughput UL/DL offered, actual TX, goodput, Jain fairness and diagnostic verdict |
+| `sanity-throughput-by-scenario.csv` | Aggregate throughput and delivery statistics for each scenario/direction |
+| `sanity-per-ue.csv` | Per-UE throughput, MAC actual/achievable rates, PDR, P50/P95/P99, samples, grants, PRBs, MCS, CQI, queue |
+| `sanity-starvation.csv` | Observed backlogged grantless durations and first actual-grant times, by RNTI/direction |
+| `sanity-verdict.json` | Machine-readable pass/fail and violations |
+| Canonical analyzer files | Paired contrasts, resource redistribution, detailed packet/grant/demand and channel/motion audits |
+
+**Interpretation:** All simulation results are engineering diagnostics until
+five-seed completed comparisons, sample-size/censoring audit, and literature
+review. P99 for a UE with insufficient receptions is exploratory or undefined,
+not evidence of low latency. The current full runner now provides `tqdm`
+progress too. The GitHub scripts are committed, but the WSL build and sanity
+campaign still require execution; no simulator pass is claimed here.
