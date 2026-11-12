@@ -102,15 +102,16 @@ The CPU Torch download blocker is resolved through the documented Aliyun mirror 
 | #12 RA-GAP-001 | Researcher review gate | Candidate question exists; novelty, exact protocol, and scientific interpretation are not delegated. |
 | #13 RA-METHOD-001 | Researcher review gate | Method is documented; it does not authorize autonomous issue execution. |
 | #14 RA-ENG-001 | **Closed as completed** | F1–F6 source audit and bounded probes are recorded; per-UE geometry is explicitly unknown at runtime and outside selected scope. GitHub issue was closed as completed on 2026-11-12. |
-| #15 RA-ENG-002 | In progress | Pre-implementation mission report created; selected whole-cell/mobile controls only. |
-| #16–#19 RA-ENG-003–006 | Not started | Depend on completed radio/mobility and prior measurement/traffic work. |
+| #15 RA-ENG-002 | **Complete; issue closure pending delivery update** | Pinned patch, paired same-seed whole-cell LOS/NLOS traces, fixed and RandomWalk probes, build and evidence checks passed. No app traffic or radio performance conclusion. |
+| #16 RA-ENG-003 | Next | Begin after #15 publication; follow the issue's traffic-control scope and pre-implementation report gate. |
+| #17–#19 RA-ENG-004–006 | Not started | Depend on the telemetry, contention and stock-control prerequisites. |
 | #20 RA-ENG-007 | Gated | Requires completed #15–#19 and explicit researcher approval of formal protocol. |
 | #21 RA-ENG-008 | Not started / dependency blocked | Requires valid #20 campaign outputs. |
 | #22 RA-ENG-009 | Researcher review gate | Requires analysis plus researcher-reviewed conclusions and publication authorization. |
 | #23 RA-PLAN-001 | Roadmap recorded | Defines active #14–#22 chain and decision gates. |
 | #24 KIRO | In progress | This portfolio execution report and subsequent evidence updates. |
 
-**As of this update**, #14 is closed as completed and #15 has a pre-implementation report shell. The implementation snapshot will be updated as work advances.
+**As of this update**, #14 is closed as completed and #15's implementation and verification are complete; its GitHub closure and delivery SHA will be recorded after publication. The implementation snapshot will be updated as work advances.
 
 The initial preflight/reconciliation delivery contained eight Markdown paths. Relative-link checking found 67 valid local targets; staged whitespace, credential-pattern, file-size, generated-artifact, and simulator/source-tree checks passed. Exact aggregate staged bytes are recorded in the documentation audit.
 
@@ -120,8 +121,8 @@ The final deliverable will be a portfolio status table with one row per active i
 
 ## Unresolved questions and next steps
 
-1. Record the GitHub closure of RA-ENG-001 and proceed with RA-ENG-002 within the already recorded whole-cell scope.
-2. Complete RA-ENG-002–006 within the recorded whole-cell/mobile scope and their technical prerequisites.
+1. Publish RA-ENG-002's replay patch, scenario configs, methodology, and verification evidence; update issue #15.
+2. Proceed through RA-ENG-003–006 within their stated technical boundaries and separate mission reports.
 3. Stop before RA-ENG-007 unless the researcher-approved experiment protocol is explicitly available; do not infer its rates, sample counts, policy pair, or selected direction.
 4. Prepare RA-ENG-008/009 only from validated outputs and researcher-reviewed conclusions.
 5. Update issue statuses with evidence; retain issues with unresolved required decisions as open.

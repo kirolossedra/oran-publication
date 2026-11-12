@@ -1,0 +1,312 @@
+diff --git a/model/iboran_campaign/iboranConfig.yaml b/model/iboran_campaign/iboranConfig.yaml
+index 5525166..6bc9df6 100644
+--- a/model/iboran_campaign/iboranConfig.yaml
++++ b/model/iboran_campaign/iboranConfig.yaml
+@@ -52,0 +53,4 @@ common:
++  mobilityMode: RandomWalk       # RandomWalk (upstream), Fixed, ControlledMoving
++  controlledMobilitySpeedMps: 0.83  # [m/s], used by ControlledMoving
++  enableRadioMobilityTrace: false
++  radioMobilityTracePeriodSeconds: 1.0 # [s]
+@@ -74,0 +79 @@ nr:
++  channelCondition: Default # Default (scenario), LOS, NLOS; applies to every UE link
+diff --git a/model/iboran_campaign/iboran_orchestrator.py b/model/iboran_campaign/iboran_orchestrator.py
+index f8ebbd1..17e00da 100755
+--- a/model/iboran_campaign/iboran_orchestrator.py
++++ b/model/iboran_campaign/iboran_orchestrator.py
+@@ -192 +192,14 @@ class IbOranOrchestrator:
+-        self._prepare_kpi()
++        has_application_traffic = (
++            self.common_params.enableDlFlow or self.common_params.enableUlFlow
++        )
++        if has_application_traffic:
++            self._prepare_kpi()
++        else:
++            print(
++                "ib-ORAN Orchestrator: no application flows enabled; "
++                "skipping dataset and intent KPI initialization."
++            )
++            self.kpi = {
++                key: self._link_pair(template)
++                for key, template in _BASE_KPI_TEMPLATES.items()
++            }
+@@ -293 +306,2 @@ class IbOranOrchestrator:
+-            self.compute_ib_kpis()
++            if has_application_traffic:
++                self.compute_ib_kpis()
+diff --git a/model/iboran_campaign/iboran_run.py b/model/iboran_campaign/iboran_run.py
+index 6221880..13a4fae 100755
+--- a/model/iboran_campaign/iboran_run.py
++++ b/model/iboran_campaign/iboran_run.py
+@@ -12,0 +13 @@ import argparse
++import yaml
+@@ -27,0 +29,4 @@ def main():
++    if args.scenario_config:
++        with open(args.scenario_config) as scenario_file:
++            scenario_overrides = yaml.safe_load(scenario_file) or {}
++        overrides = _deep_merge(scenario_overrides, overrides)
+@@ -121,0 +127,5 @@ def _config_args():
++    parser.add_argument(
++        "--scenario_config",
++        default=None,
++        help="Optional YAML override layered onto iboranConfig.yaml",
++    )
+diff --git a/model/iboran_ran_environment/iboran-nr-environment.cc b/model/iboran_ran_environment/iboran-nr-environment.cc
+index d35c84b..a3b542c 100644
+--- a/model/iboran_ran_environment/iboran-nr-environment.cc
++++ b/model/iboran_ran_environment/iboran-nr-environment.cc
+@@ -53 +53 @@ void
+-SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
++SetupNrChannelModel(const NrParams& nrParams, Ptr<NrChannelHelper> channelHelper)
+@@ -55 +55,5 @@ SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
+-    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
++    NS_ABORT_MSG_IF(nrParams.channelCondition != "Default" && nrParams.channelCondition != "LOS" &&
++                        nrParams.channelCondition != "NLOS",
++                    "Unknown nr.channelCondition '" << nrParams.channelCondition
++                                                       << "' (expected Default, LOS, NLOS)");
++    channelHelper->ConfigureFactories("UMi", nrParams.channelCondition, "ThreeGpp");
+@@ -57 +61,6 @@ SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
+-    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
++    if (nrParams.channelCondition == "Default")
++    {
++        // The UMi default condition model supports UpdatePeriod. Forced LOS/NLOS
++        // condition classes are stateless and do not expose this attribute.
++        channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
++    }
+@@ -210 +219 @@ main(int argc, char* argv[])
+-    SetupNrChannelModel(channelHelper);
++    SetupNrChannelModel(nrParams, channelHelper);
+@@ -214,0 +224,4 @@ main(int argc, char* argv[])
++    PointerValue conditionValue;
++    allBwps.at(0).get()->GetChannel()->GetPropagationLossModel()->GetAttribute(
++        "ChannelConditionModel", conditionValue);
++
+@@ -264,0 +278,10 @@ main(int argc, char* argv[])
++    if (commonParams.enableRadioMobilityTrace)
++    {
++        ScheduleFronthaulStateTrace(gnbNodes,
++                                    ueNodes,
++                                    ueDevs,
++                                    conditionValue.Get<ChannelConditionModel>(),
++                                    commonParams.radioMobilityTracePeriodSeconds,
++                                    commonParams.simTime);
++    }
++
+diff --git a/model/iboran_ran_environment/iboran-ran-common.cc b/model/iboran_ran_environment/iboran-ran-common.cc
+index ef81b97..b49a53e 100644
+--- a/model/iboran_ran_environment/iboran-ran-common.cc
++++ b/model/iboran_ran_environment/iboran-ran-common.cc
+@@ -311,20 +311,54 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
+-    // UEs with random walk mobility
+-    MobilityHelper ueMobility;
+-    ueMobility.SetMobilityModel(
+-        "ns3::RandomWalk2dMobilityModel",
+-        "Bounds",
+-        RectangleValue(Rectangle(0, commonParams.simAreaLength, 0, commonParams.simAreaLength)),
+-        "Speed",
+-        StringValue("ns3::ConstantRandomVariable[Constant=0.83]"), // ~3 km/h
+-        "Mode",
+-        StringValue("Distance"),
+-        "Distance",
+-        DoubleValue(100.0) // change direction every 100 m
+-    );
+-    ueMobility.Install(ueNodes);
+-
+-    // Set initial random positions for UEs
+-    Ptr<UniformRandomVariable> randPos = CreateObject<UniformRandomVariable>();
+-    randPos->SetAttribute("Min", DoubleValue(0.0));
+-    randPos->SetAttribute("Max", DoubleValue(commonParams.simAreaLength));
+-    for (uint32_t i = 0; i < commonParams.ueNum; i++)
++    if (commonParams.mobilityMode == "RandomWalk")
++    {
++        // Retain the pinned upstream RandomWalk model and randomized placement.
++        MobilityHelper ueMobility;
++        ueMobility.SetMobilityModel(
++            "ns3::RandomWalk2dMobilityModel",
++            "Bounds",
++            RectangleValue(Rectangle(0, commonParams.simAreaLength, 0, commonParams.simAreaLength)),
++            "Speed",
++            StringValue("ns3::ConstantRandomVariable[Constant=0.83]"), // ~3 km/h
++            "Mode",
++            StringValue("Distance"),
++            "Distance",
++            DoubleValue(100.0));
++        ueMobility.Install(ueNodes);
++
++        Ptr<UniformRandomVariable> randPos = CreateObject<UniformRandomVariable>();
++        randPos->SetAttribute("Min", DoubleValue(0.0));
++        randPos->SetAttribute("Max", DoubleValue(commonParams.simAreaLength));
++        for (uint32_t i = 0; i < ueNodes.GetN(); i++)
++        {
++            ueNodes.Get(i)->GetObject<MobilityModel>()->SetPosition(
++                Vector(randPos->GetValue(), randPos->GetValue(), 1.5));
++        }
++    }
++    else if (commonParams.mobilityMode == "Fixed" ||
++             commonParams.mobilityMode == "ControlledMoving")
++    {
++        NS_ABORT_MSG_IF(commonParams.ueNum != 6,
++                        commonParams.mobilityMode << " validation geometry requires exactly 6 UEs");
++        NS_ABORT_MSG_IF(commonParams.controlledMobilitySpeedMps <= 0.0,
++                        "controlledMobilitySpeedMps must be positive");
++        MobilityHelper ueMobility;
++        ueMobility.SetMobilityModel(commonParams.mobilityMode == "Fixed"
++                                        ? "ns3::ConstantPositionMobilityModel"
++                                        : "ns3::ConstantVelocityMobilityModel");
++        ueMobility.Install(ueNodes);
++        for (uint32_t i = 0; i < ueNodes.GetN(); i++)
++        {
++            // Same deterministic 2x3 grid for both paired mobility arms.
++            const double x = commonParams.simAreaLength * 0.5 +
++                             (static_cast<int>(i % 3) - 1) * 10.0;
++            const double y = commonParams.simAreaLength * 0.5 +
++                             (static_cast<int>(i / 3) == 0 ? -5.0 : 5.0);
++            Ptr<MobilityModel> model = ueNodes.Get(i)->GetObject<MobilityModel>();
++            model->SetPosition(Vector(x, y, 1.5));
++            if (commonParams.mobilityMode == "ControlledMoving")
++            {
++                ueNodes.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(
++                    Vector(commonParams.controlledMobilitySpeedMps, 0.0, 0.0));
++            }
++        }
++    }
++    else
+@@ -332,5 +366,2 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
+-        double xPos = randPos->GetValue();
+-        double yPos = randPos->GetValue();
+-        ueNodes.Get(i)->GetObject<MobilityModel>()->SetPosition(
+-            Vector(xPos, yPos, 1.5) // 1.5 m user height
+-        );
++        NS_ABORT_MSG("Unknown mobilityMode '" << commonParams.mobilityMode
++                                                << "' (expected RandomWalk, Fixed, ControlledMoving)");
+@@ -353,0 +385,62 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
++namespace
++{
++void
++WriteFronthaulStateRow(NodeContainer xnbNodes,
++                       NodeContainer ueNodes,
++                       NetDeviceContainer ueDevices,
++                       Ptr<ChannelConditionModel> conditionModel,
++                       double tracePeriodSeconds,
++                       double simulationEndSeconds)
++{
++    const double time = Simulator::Now().GetSeconds();
++    const auto gnb = xnbNodes.Get(0)->GetObject<MobilityModel>();
++    const auto gnbPosition = gnb->GetPosition();
++    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
++    {
++        const auto ue = ueNodes.Get(i)->GetObject<MobilityModel>();
++        const auto position = ue->GetPosition();
++        const auto state = conditionModel->GetChannelCondition(gnb, ue);
++        const auto ueDevice = DynamicCast<NrUeNetDevice>(ueDevices.Get(i));
++        std::cout << std::setprecision(12) << "RADIO_MOBILITY_TRACE," << time << ',' << i << ','
++                  << ueNodes.Get(i)->GetId() << ',' << xnbNodes.Get(0)->GetId() << ','
++                  << (ueDevice ? ueDevice->GetRrc()->GetRnti() : 0) << ',' << gnbPosition.x << ','
++                  << gnbPosition.y << ',' << gnbPosition.z << ',' << position.x << ','
++                  << position.y << ',' << position.z << ','
++                  << (state->IsLos() ? "LOS" : (state->IsNlos() ? "NLOS" : "NLOSv")) << '\n';
++    }
++    if (time + tracePeriodSeconds <= simulationEndSeconds)
++    {
++        Simulator::Schedule(Seconds(tracePeriodSeconds),
++                            &WriteFronthaulStateRow,
++                            xnbNodes,
++                            ueNodes,
++                            ueDevices,
++                            conditionModel,
++                            tracePeriodSeconds,
++                            simulationEndSeconds);
++    }
++}
++} // namespace
++
++void
++ScheduleFronthaulStateTrace(const NodeContainer& xnbNodes,
++                            const NodeContainer& ueNodes,
++                            const NetDeviceContainer& ueDevices,
++                            Ptr<ChannelConditionModel> conditionModel,
++                            double tracePeriodSeconds,
++                            double simulationEndSeconds)
++{
++    NS_ABORT_MSG_IF(!conditionModel, "Cannot trace a null channel condition model");
++    NS_ABORT_MSG_IF(tracePeriodSeconds <= 0.0, "Trace period must be positive");
++    std::cout << "RADIO_MOBILITY_TRACE,time_s,ue_index,ue_node_id,gnb_node_id,rnti,"
++                 "gnb_x_m,gnb_y_m,gnb_z_m,ue_x_m,ue_y_m,ue_z_m,condition\n";
++    Simulator::Schedule(Seconds(0),
++                        &WriteFronthaulStateRow,
++                        xnbNodes,
++                        ueNodes,
++                        ueDevices,
++                        conditionModel,
++                        tracePeriodSeconds,
++                        simulationEndSeconds);
++}
++
+diff --git a/model/iboran_ran_environment/iboran-ran-common.h b/model/iboran_ran_environment/iboran-ran-common.h
+index 20ba080..67a9232 100644
+--- a/model/iboran_ran_environment/iboran-ran-common.h
++++ b/model/iboran_ran_environment/iboran-ran-common.h
+@@ -19,0 +20 @@
++#include "ns3/channel-condition-model.h"
+@@ -76,0 +78,7 @@ void SetupFronthaulMobility(const CommonRanParams& commonParams,
++void ScheduleFronthaulStateTrace(const NodeContainer& xnbNodes,
++                                 const NodeContainer& ueNodes,
++                                 const NetDeviceContainer& ueDevices,
++                                 Ptr<ChannelConditionModel> conditionModel,
++                                 double tracePeriodSeconds,
++                                 double simulationEndSeconds);
++
+diff --git a/model/iboran_ran_environment/iboran-ran-params.cc b/model/iboran_ran_environment/iboran-ran-params.cc
+index 6630def..7a35e07 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.cc
++++ b/model/iboran_ran_environment/iboran-ran-params.cc
+@@ -104,0 +105,4 @@ SimParams::SimParams()
++    common.mobilityMode = "RandomWalk";
++    common.controlledMobilitySpeedMps = 0.83;
++    common.enableRadioMobilityTrace = false;
++    common.radioMobilityTracePeriodSeconds = 1.0;
+@@ -163,0 +168 @@ SimParams::SimParams()
++    nr.channelCondition = "Default";
+@@ -225,0 +231,16 @@ SimParams::LoadFromYaml(const std::string& filepath)
++        if (c["mobilityMode"])
++        {
++            common.mobilityMode = c["mobilityMode"].as<std::string>();
++        }
++        if (c["controlledMobilitySpeedMps"])
++        {
++            common.controlledMobilitySpeedMps = c["controlledMobilitySpeedMps"].as<double>();
++        }
++        if (c["enableRadioMobilityTrace"])
++        {
++            common.enableRadioMobilityTrace = c["enableRadioMobilityTrace"].as<bool>();
++        }
++        if (c["radioMobilityTracePeriodSeconds"])
++        {
++            common.radioMobilityTracePeriodSeconds = c["radioMobilityTracePeriodSeconds"].as<double>();
++        }
+@@ -358,0 +380,4 @@ SimParams::LoadFromYaml(const std::string& filepath)
++        if (n["channelCondition"])
++        {
++            nr.channelCondition = n["channelCondition"].as<std::string>();
++        }
+diff --git a/model/iboran_ran_environment/iboran-ran-params.h b/model/iboran_ran_environment/iboran-ran-params.h
+index f9859c3..70d6439 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.h
++++ b/model/iboran_ran_environment/iboran-ran-params.h
+@@ -67,0 +68,4 @@ struct CommonRanParams
++    std::string mobilityMode; // RandomWalk (upstream), Fixed, or ControlledMoving
++    double controlledMobilitySpeedMps; // speed for ControlledMoving [m/s]
++    bool enableRadioMobilityTrace; // write per-UE position and actual channel-condition rows
++    double radioMobilityTracePeriodSeconds; // trace period [s]
+@@ -93,0 +98 @@ struct NrParams
++    std::string channelCondition;  // whole-cell condition: Default, LOS, or NLOS
+diff --git a/model/utils/config_store.py b/model/utils/config_store.py
+index a2b3d0b..4b1bfe1 100644
+--- a/model/utils/config_store.py
++++ b/model/utils/config_store.py
+@@ -61,0 +62,4 @@ class CommonRanParams(BaseModel):
++    mobilityMode: Literal["RandomWalk", "Fixed", "ControlledMoving"] = "RandomWalk"
++    controlledMobilitySpeedMps: float = Field(0.83, gt=0.0)
++    enableRadioMobilityTrace: bool = False
++    radioMobilityTracePeriodSeconds: float = Field(1.0, gt=0.0)
+@@ -73,0 +78 @@ class NrParams(BaseModel):
++    channelCondition: Literal["Default", "LOS", "NLOS"] = "Default"
