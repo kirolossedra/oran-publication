@@ -11,6 +11,8 @@ import math
 from pathlib import Path
 import statistics
 
+from run_g1_integrated_campaign import outcome_source_hashes, has_data_rows, SPEC_PATH
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = json.loads((Path(__file__).resolve().parents[1] / "config/g1-integrated-campaign.json").read_text())
@@ -70,30 +72,56 @@ def cell_factors(attempt: Path) -> dict:
     return meta
 
 
+def unique_planned_cells(base: list[dict], extension: list[dict]) -> dict[str, dict]:
+    """Directional extension may repeat cells; each experiment ID is unique."""
+    planned = {}
+    for cell in [*base, *extension]:
+        cid = cell["cell_id"]
+        if cid in planned and planned[cid] != cell:
+            raise ValueError(f"Conflicting duplicate matrix cell: {cid}")
+        planned[cid] = cell
+    return planned
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     attempt_dirs = sorted(CAMPAIGN.glob("cells/*/attempt-*"))
     audit, ue_rows, grant_rows, demand_rows = [], [], [], []
+    expected_source_hashes = outcome_source_hashes()
     primary_attempt = {}
     for candidate in attempt_dirs:
         status = candidate / "exit-status.txt"
-        complete = (status.exists() and status.read_text().strip() == "0"
-                    and (candidate / "logs/kpi.json").exists()
-                    and (candidate / "logs/packet-events.csv").exists()
-                    and (candidate / "logs/mac-grants.csv").exists())
-        demand_file = candidate / "logs/mac-demand.csv"
-        if complete and demand_file.exists():
-            try:
-                with demand_file.open() as f:
-                    complete = sum(1 for _ in f) > 1
-            except OSError:
-                complete = False
-        if complete:
-            primary_attempt[candidate.parent.name] = candidate
+        if not status.exists() or status.read_text().strip() != "0":
+            continue
+        try:
+            metadata = json.loads((candidate / "run-metadata.json").read_text())
+            if metadata.get("packet_measurement_schema") != "serialized-app-header-v1":
+                continue
+            if metadata.get("source_sha256") != expected_source_hashes:
+                continue  # do not pool old and corrected policy results
+            if not (candidate / "logs/kpi.json").is_file():
+                continue
+            if not has_data_rows(candidate / "logs/packet-events.csv",
+                                 {"event", "time_ns", "ue_index", "direction", "sequence", "tx_time_ns", "bytes"}):
+                continue
+            if not has_data_rows(candidate / "logs/mac-grants.csv",
+                                 {"time_ns", "rnti", "direction", "rbg_count", "mcs"}):
+                continue
+            if not has_data_rows(candidate / "logs/mac-demand.csv",
+                                 {"time_ns", "rnti", "direction", "buffer_bytes", "cqi"}):
+                continue
+        except (OSError, ValueError, json.JSONDecodeError):
+            continue
+        cell_id = candidate.parent.name
+        current = primary_attempt.get(cell_id)
+        old_num = int(current.name.split("-", 1)[1]) if current else -1
+        next_num = int(candidate.name.split("-", 1)[1])
+        if next_num > old_num:
+            primary_attempt[cell_id] = candidate
     source_paths = [
-        ROOT / "configs/g1-integrated-campaign.json",
-        ROOT / "experiment-scripts/run_g1_integrated_campaign.py",
-        ROOT / "experiment-scripts/analyze_g1_integrated_campaign.py",
+        SPEC_PATH,
+        Path(__file__).resolve().with_name("run_g1_integrated_campaign.py"),
+        Path(__file__).resolve(),
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_application/iboran-application.cc",
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_application/iboran-application.h",
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_mac_scheduler/iboran-nr-mac-scheduler.cc",
@@ -105,6 +133,9 @@ def main():
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_campaign/iboran_orchestrator.py",
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_controller/iboran_dapp.py",
         ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_controller/iboran_dapp_mac_scheduler.py",
+        ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection_round_robin.py",
+        ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection_top_k.py",
+        ROOT / "simulator/ns-3.48/contrib/iboran/model/iboran_controller/iboran_dapp_algos/dapp_algo_ue_selection.py",
     ]
     (OUT / "source-sha256.txt").write_text("".join(
         f"{sha256(path)}  {path.relative_to(ROOT)}\n" for path in source_paths if path.exists()
@@ -125,20 +156,22 @@ def main():
         grants_path = attempt / "logs/mac-grants.csv"
         success = status == 0 and kpi.exists()
         demand_file = attempt / "logs/mac-demand.csv"
-        measurement_complete = (success and packet_path.exists() and grants_path.exists()
-                                and demand_file.exists())
-        if measurement_complete:
-            try:
-                with demand_file.open() as f:
-                    measurement_complete = sum(1 for _ in f) > 1
-            except OSError:
-                measurement_complete = False
+        try:
+            attempt_meta = json.loads((attempt / "run-metadata.json").read_text())
+            revision_match = attempt_meta.get("source_sha256") == expected_source_hashes
+        except (OSError, ValueError, json.JSONDecodeError):
+            revision_match = False
+        measurement_complete = (success and revision_match
+            and has_data_rows(packet_path, {"event", "time_ns", "ue_index", "direction", "sequence", "tx_time_ns", "bytes"})
+            and has_data_rows(grants_path, {"time_ns", "rnti", "direction", "rbg_count", "mcs"})
+            and has_data_rows(demand_file, {"time_ns", "rnti", "direction", "buffer_bytes", "cqi"}))
         selected_for_analysis = primary_attempt.get(attempt.parent.name) == attempt
         audit.append({**cell, "attempt": str(attempt.relative_to(ROOT)), "exit_status": status,
                       "has_kpi": kpi.exists(), "has_packet_events": packet_path.exists(),
                       "has_mac_grants": grants_path.exists(),
                       "has_mac_demand": (attempt / "logs/mac-demand.csv").exists(),
-                      "successful": success, "measurement_complete": measurement_complete,
+                      "successful": success, "matches_current_source": revision_match,
+                      "measurement_complete": measurement_complete,
                       "selected_for_analysis": selected_for_analysis})
         if not selected_for_analysis:
             continue
@@ -547,8 +580,8 @@ def main():
 
     base_planned = json.loads((CAMPAIGN / "planned-matrix.json").read_text())
     extension_path = CAMPAIGN / "directional-load-extension.json"
-    extension_planned = json.loads(extension_path.read_text())["cells"] if extension_path.exists() else []
-    planned_total = len(base_planned["cells"]) + len(extension_planned)
+    extension_cells = json.loads(extension_path.read_text())["cells"] if extension_path.exists() else []
+    planned_total = len(unique_planned_cells(base_planned["cells"], extension_cells))
     counts = {"planned_cells": planned_total,
               "attempts": len(audit), "successful_attempts": sum(bool(x["successful"]) for x in audit),
               "failed_attempts": sum(not bool(x["successful"]) for x in audit),
