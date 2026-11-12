@@ -1,5 +1,22 @@
 # Experiment execution index
 
+## Current new O-RAN LOS→NLOS→LOS experiment
+
+- [prepare_los_nlos_transition.py](prepare_los_nlos_transition.py): verify/preserve/backup/apply pinned source; optional tests and NR build WITHOUT launching old G1.
+- [run_los_nlos_transition.py](run_los_nlos_transition.py): paired all-LOS/LOS→NLOS→LOS, six-UE target movement, dApp xApp controls, preserved attempts.
+- [analyze_los_nlos_transition.py](analyze_los_nlos_transition.py): time-phase per-UE UL/DL TX-cohort delivery, P95/P99 and CQI (not physical loss or QoS guarantee).
+- [Numeric decision gates](../configs/los-nlos-transition.json): no automatic 6/50/500 Mbps selection, no unstated bandwidth/time thresholds, no automatic k.
+
+```bash
+python experiment-scripts/run_los_nlos_transition.py --plan-only
+# After PI selects parameters and WSL environment is installed:
+python experiment-scripts/prepare_los_nlos_transition.py --apply-overrides --build
+python experiment-scripts/run_los_nlos_transition.py --limit 2
+```
+
+## Legacy G1 scripts (preserved for reproducibility, NOT the current experiment)
+
+
 All **current runnable research scripts** live here. Do not create a
 second `scripts/` or `campaigns/<date>/scripts/` directory.
 
