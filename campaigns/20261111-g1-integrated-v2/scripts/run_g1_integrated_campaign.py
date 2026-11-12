@@ -17,6 +17,15 @@ import time
 
 import yaml
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    # Avoid blocking restoration of pinned research environments. Install tqdm
+    # for a progress bar; a plain iterable remains available for emergencies.
+    def tqdm(items, **_kwargs):
+        print("WARNING: tqdm unavailable; install it in the active environment for progress display", flush=True)
+        return items
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SIM = ROOT / "simulator/ns-3.48"
@@ -108,6 +117,23 @@ def pilot_block(cells: list[dict]) -> list[dict]:
     return selected
 
 
+def sanity_block(cells: list[dict]) -> list[dict]:
+    """One-seed 20-cell pilot: all load directions and a motion cross-check."""
+    first_seed = SEEDS[0]
+    selected = [
+        cell for cell in cells
+        if cell["seed"] == first_seed
+        and (
+            cell["mobility"] == "stationary"
+            or (cell["mobility"] == "controlled-linear" and cell["load"] == "contending")
+        )
+    ]
+    expected = len(CHANNELS) * len(POLICIES) * (len(LOADS) + 1)
+    if len(selected) != expected or expected != 20:
+        raise RuntimeError(f"expected 20 sanity cells, planned {len(selected)}")
+    return selected
+
+
 def write_once(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not path.exists():
@@ -194,11 +220,15 @@ def main() -> int:
         "--pilot-block", action="store_true",
         help="Run the predeclared first-seed 2x2x2 channel/load/policy block at stationary mobility",
     )
+    parser.add_argument(
+        "--sanity-block", action="store_true",
+        help="Run a 20-cell, one-seed sanity matrix including high-throughput UL/DL arms and mobility",
+    )
     parser.add_argument("--python", default=str(SIM / ".venv/bin/python"))
     parser.add_argument("--campaign-root", type=Path, default=RUNS)
     args = parser.parse_args()
-    if args.pilot_block and args.limit:
-        parser.error("--pilot-block and --limit cannot be combined")
+    if sum(bool(v) for v in (args.pilot_block, args.sanity_block, args.limit)) > 1:
+        parser.error("--sanity-block, --pilot-block and --limit are mutually exclusive")
     campaign_root = args.campaign_root.resolve()
     campaign_root.mkdir(parents=True, exist_ok=True)
     base_copy = campaign_root / "frozen-base-config.yaml"
@@ -230,7 +260,18 @@ def main() -> int:
             },
         }, indent=2) + "\n")
     manifest = campaign_root / "attempts.jsonl"
-    if args.pilot_block:
+    if args.sanity_block:
+        work = sanity_block(cells)
+        write_once(campaign_root / "sanity-block-selection.json", json.dumps({
+            "purpose": "diagnostic_only_not_formal_inference",
+            "seed": SEEDS[0],
+            "stationary_loads": list(LOADS),
+            "mobile_loads": ["contending"],
+            "channels": list(CHANNELS),
+            "policies": list(POLICIES),
+            "cell_ids": [cell["cell_id"] for cell in work],
+        }, indent=2) + "\n")
+    elif args.pilot_block:
         work = pilot_block(cells)
         pilot_seed = SEEDS[0]
         pilot_loads = ("light", "contending")
@@ -247,7 +288,8 @@ def main() -> int:
     else:
         work = cells[:args.limit] if args.limit else cells
     current_source_hashes = outcome_source_hashes()
-    for index, cell in enumerate(work, 1):
+    failed_runs = 0
+    for index, cell in enumerate(tqdm(work, desc="G1 scenarios", unit="run", dynamic_ncols=True), 1):
         if outcome_source_hashes() != current_source_hashes:
             raise RuntimeError("Outcome source code changed during campaign; stop before mixing implementations")
         cell_dir = campaign_root / "cells" / cell["cell_id"]
@@ -295,7 +337,9 @@ def main() -> int:
             out.write(json.dumps({"cell_id": cell["cell_id"], "attempt": str(attempt),
                                   "exit_status": result.returncode}) + "\n")
         print(f"[{index}/{len(work)}] EXIT {result.returncode} {cell['cell_id']}", flush=True)
-    return 0
+        if result.returncode != 0:
+            failed_runs += 1
+    return 1 if failed_runs else 0
 
 
 if __name__ == "__main__":
