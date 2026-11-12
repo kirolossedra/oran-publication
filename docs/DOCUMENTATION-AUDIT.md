@@ -58,7 +58,7 @@ This preflight/reconciliation delivery stages eight Markdown paths only (78,410 
 
 ## RA-ENG-002 radio and mobility validation
 
-**Audit date:** 2026-11-12. **Status:** implementation and bounded validation complete; publication/issue closure pending.
+**Audit date:** 2026-11-12. **Status:** implementation, bounded validation, publication, and issue closure complete.
 
 - The mission report was created before new source inspection/editing. The researcher-recorded whole-cell LOS/NLOS choice satisfies the issue's granularity gate. The patch applies to the exact pinned Orange ib-ORAN commit and adds condition selection, `Fixed` and `ControlledMoving` modes, trace output, typed config fields, scenario override support, and no-application-flow initialization.
 - The final pinned `ns3iboran_nr` target built. Full seed 1/run 1 LOS and NLOS runs used the same deterministic 2×3 UE geometry, +x speed 0.83 m/s, duration 20 s and one-second samples. The validator confirmed 120 rows per arm, all six realized conditions, identical positions/node IDs/RNTIs, and the assigned six-RNTI set. Fixed-position and 2 s RandomWalk regression probes also completed. No application traffic or dataset model was used.
@@ -66,6 +66,7 @@ This preflight/reconciliation delivery stages eight Markdown paths only (78,410 
 - No radio performance, pathloss, RSRP/SINR/CQI, treatment-effect, indoor-factory validity, or P95/P99 result is claimed. Trace output records actual channel class and geometry; invoking pathloss in the trace was avoided to prevent consuming propagation-model random state.
 - Tracked reproduction artifacts are the pinned-source patch, four scenario configs, config materializer, pair validator, mission report, and methodology. Full generated traces/configs/KPI and animation outputs remain ignored under `simulator/logs/RA-ENG-002-20261112/`; a checksum manifest records them. The previous Mission 1 upstream smoke output is unchanged.
 - The replay patch passed `git apply --unidiff-zero --check` and application in a clean detached worktree at the pinned ib-ORAN commit; reverse-check also passed against the local integrated ns-3 tree. The staged delivery excludes simulator sources, builds, caches, environments, and raw outputs. Seventy-seven relative Markdown links across the updated navigation/reports resolve; staged whitespace and credential-pattern checks passed.
+- Delivery comprised 17 tracked paths (90,495 bytes; largest file 20,923 bytes). The descriptive commit `c9c8e51f6a358f4333367ad3224f8513ab561b95` was pushed fast-forward to `main`; local `HEAD` and `git ls-remote origin refs/heads/main` matched, and issue #15 was closed as completed.
 
 ## Mission 1 evidence checked
 

@@ -1,6 +1,6 @@
 # RA-ENG-002 — Verified radio conditions and repeatable six-UE motion
 
-**Status:** COMPLETE as a bounded engineering validation. **Date:** 2026-11-12. **GitHub:** [issue #15](https://github.com/kirolossedra/oran-publication/issues/15).
+**Status:** COMPLETE; GitHub issue #15 closed as completed. **Date:** 2026-11-12. **Commit:** `c9c8e51f6a358f4333367ad3224f8513ab561b95`, verified on remote `main`. **GitHub:** [issue #15](https://github.com/kirolossedra/oran-publication/issues/15).
 
 ## Research objective and scope
 
@@ -96,4 +96,4 @@ The completed report, reusable validation methodology, minimal patch/config, sho
 - [x] README, mission index and documentation audit updated
 - [x] Source pins, claims, paths, parameters, and reproduction commands checked
 - [x] Staged path, size, credential, source-tree and generated-artifact audit passed
-- [ ] Commit pushed to existing `main`; remote SHA verified
+- [x] Commit pushed to existing `main`; remote SHA verified
