@@ -100,12 +100,12 @@ Attempt 1 payload and wildcard-address defects are described above and retained.
 
 ## Final deliverables
 
-Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scenario configs, source replay patches, raw run evidence, and methodology documentation. RA-ENG-004 is ready for documentation audit, commit/push and issue closure after those governance actions finish.
+Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scenario configs, source replay patches, raw run evidence, and methodology documentation. Local commit `9b2582f` is a safe descendant of researcher commit `9a8697c`; push verification and issue closure remain.
 
 ## Unresolved questions and next steps
 
-1. Complete repository links/audit, verify patch replay, checksum raw evidence, and finish staged-content/source-tree audits.
-2. Commit, push safely to `main`, verify the remote SHA, then post issue #17 evidence and close it.
+1. Push the safe fast-forward to `main` and verify the remote SHA.
+2. Post issue #17 evidence and close it only after confirming publication.
 3. Proceed to RA-ENG-005 (#18) only within its issue scope; preserve researcher-controlled protocol and interpretation gates.
 
 ## Documentation completion checklist
@@ -115,5 +115,5 @@ Implemented packet telemetry, applied-grant event, analyzer, fixtures, six scena
 - [x] Results/logs/config/patches preserved
 - [x] README, mission index, and audit updated
 - [x] Paths, claims, parameters, and reproduction commands checked
-- [ ] Staged file/size/secret/source-tree audit passed
+- [x] Staged file/size/secret/source-tree audit passed
 - [ ] Commit created and pushed to `main`; remote SHA verified
