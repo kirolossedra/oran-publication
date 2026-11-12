@@ -1,5 +1,11 @@
 # Research index
 
+- [**Current new LOS→NLOS→LOS source and scientific gates**](los-nlos-transition-implementation.md): dynamic condition, isolated runner, source control, xApp intervention, limitations
+- [PI governing research-direction issue #26](https://github.com/kirolossedra/oran-publication/issues/26): authoritative research reset
+
+## Legacy G1 research records (not controlling the new plan)
+
+
 - [Experiment overview](experiment-overview.md): actual candidate research
   question, one-gNB/six-UE design, controlled channel/mobility/load/policy matrix
 - [Scheduler policy controls](scheduler-policy-controls.md):
