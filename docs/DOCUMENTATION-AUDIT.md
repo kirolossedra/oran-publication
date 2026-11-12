@@ -44,6 +44,7 @@
 
 - Report, matrix, options and architecture diagram are linked from root README, docs README and mission index.
 - The CPU-wheel recovery documentation update stages seven Markdown paths (79,821 bytes total; largest file 23,444 bytes). The set contains no credentials, generated/binary artifacts, simulator sources/builds/caches, or unrelated paths; staged whitespace check passed. Wheel archives, environment, and full download logs remain ignored.
+- Documentation commit `691df8f620a0c041c8af19af9137003a095dba59` is verified on remote `main`; `git rev-parse HEAD` and `git ls-remote origin refs/heads/main` matched, and the worktree was clean at verification.
 - The main documentation update passed staged-set checks for five Markdown paths (33,941 bytes before that audit note). The follow-up status update passed staged-set checks for two Markdown paths (23,731 bytes before that audit note). The test-results update passed staged-set checks for three Markdown paths (31,313 bytes before this audit note). These sets contained no credential-pattern matches, generated artifacts, binaries, simulator sources/builds, or unrelated paths. Simulator sources, venvs, dependency caches, build products, and logs remain ignored. Historical Git pushes failed while credentials were unavailable; the full local stack was later pushed by fast-forward on 2026-11-12, with remote `main` verified at `89b5c1bb2116bd8154a6387fdd9ab93164e96acf`. Researcher choices and the remaining runtime gate are listed in the report and technical-options doc.
 
 ## Mission 1 evidence checked
