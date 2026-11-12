@@ -23,7 +23,7 @@ from model.iboran_controller.iboran_dapp_algos.dapp_algo_ue_selection_round_robi
 from model.iboran_controller.iboran_dapp_algos.dapp_algo_ue_selection_top_k import (
     DAppAlgoUeSelectionTopK,
 )
-from run_g1_integrated_campaign import plan, latest_success, attempt_number
+from run_g1_integrated_campaign import plan, pilot_block, latest_success, attempt_number
 from analyze_g1_integrated_campaign import unique_planned_cells
 
 
@@ -71,6 +71,15 @@ class TestSchedulerFixes(unittest.TestCase):
         cells = plan()
         self.assertEqual(len(cells), 160)
         self.assertEqual(len({c["cell_id"] for c in cells}), 160)
+
+    def test_pilot_is_first_seed_full_channel_load_policy_block(self):
+        selected = pilot_block(plan())
+        self.assertEqual(len(selected), 8)
+        self.assertEqual({c["seed"] for c in selected}, {11})
+        self.assertEqual({c["channel"] for c in selected}, {"all-los", "ue6-nlos"})
+        self.assertEqual({c["mobility"] for c in selected}, {"stationary"})
+        self.assertEqual({c["load"] for c in selected}, {"light", "contending"})
+        self.assertEqual({c["policy"] for c in selected}, {"RoundRobin", "TopKCqi"})
 
     def test_directional_cells_are_subset_not_extras(self):
         base = plan()

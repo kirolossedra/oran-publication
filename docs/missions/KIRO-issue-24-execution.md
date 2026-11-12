@@ -4,7 +4,7 @@
 
 ## Objective and scope
 
-Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–004 (#14–#17) are completed and closed; RA-ENG-004 is published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. RA-ENG-005 (#18) is closed with one-seed load-calibration results, candidate rates, and limitations documented; closeout SHA `762eb32f56d986aba3e9eac49110e4557efae26b` is remote-verified. RA-ENG-006 (#19) now has a source-grounded paired seed-11 policy probe and complete per-UE outcome record. RA-ENG-007 (#20) has explicit approval to use the existing 160-cell v2 matrix and is in progress; RA-ENG-008/009 still require formal outputs, analysis, and researcher review.
+Track the O-RAN mission portfolio and execute technical work in dependency order while preserving human ownership of the research question, formal protocol, statistical interpretation, and publication claims. Issue #24 requests completion of the portfolio; issue-specific stop gates and the repository's research governance still apply. Issues #1–#10 are superseded drafts. RA-ENG-001–004 (#14–#17) are completed and closed; RA-ENG-004 is published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. RA-ENG-005 (#18) is closed with one-seed load-calibration results, candidate rates, and limitations documented; closeout SHA `762eb32f56d986aba3e9eac49110e4557efae26b` is remote-verified. RA-ENG-006 (#19) now has a source-grounded paired seed-11 policy probe and complete per-UE outcome record. RA-ENG-007 (#20) has explicit approval to use the existing 160-cell v2 matrix; source overrides are applied, the target builds, and the pilot is being repaired after preserved runner/model initialization failures. RA-ENG-008/009 still require valid formal outputs, analysis, and researcher review.
 
 ## Dependency model
 
@@ -42,7 +42,7 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 | #17 | RA-ENG-004 | Closed complete | [Mission report](RA-ENG-004-instrumentation.md), [schema](../methodology/g1-packet-grant-metrics.md), raw `simulator/logs/RA-ENG-004-20261112/`; commit `b75c578` is remote-verified. |
 | #18 | RA-ENG-005 | Closed, engineering calibration complete | [Report](RA-ENG-005-load-calibration.md), [method/results](../methodology/g1-load-calibration.md); candidate rates returned, no formal factors selected; closeout SHA `762eb32f56d986aba3e9eac49110e4557efae26b` remote-verified. |
 | #19 | RA-ENG-006 | Engineering probe complete; researcher choice pending | [Mission report](RA-ENG-006-stock-scheduling.md) and [source/control note](../research/g1-stock-policy-controls.md). RoundRobin/TopKCqi changed actual applied grants in one matched seed-11 probe; not a formal ranking. |
-| #20 | RA-ENG-007 | **Protocol approved; campaign not run yet** | [Readiness report](RA-ENG-007-paired-campaign.md) records approval of the existing v2 matrix (selective UE6 NLOS, both directions, mobility, four loads, two policies, five seeds). Corrected source overrides must be applied and rebuilt before campaign execution. |
+| #20 | RA-ENG-007 | **Approved; pilot in progress** | [Readiness report](RA-ENG-007-paired-campaign.md) records approval, 13 applied source overrides, successful build, nine passing regression checks, the local CLIP model conversion, and preserved failed pilot attempts. No valid pilot cell is complete yet. |
 | #21 | RA-ENG-008 | Awaiting valid formal campaign outputs | The v2 package snapshot reports 92/160 successful cells and 68 uncompleted; these package counts do not authorize a replacement formal analysis. |
 | #22 | RA-ENG-009 | Researcher review and authorization gate | Requires reviewed analysis, approved claims, and authorization to assemble publication assets. |
 | #24 | KIRO | Incomplete pending researcher gates | Technical setup and missions through #19 are documented. The formal campaign, its analysis, and publication package cannot be truthfully marked complete without the required approvals and outputs. |
@@ -50,7 +50,7 @@ This is a conceptual dependency diagram based on the issue sequence and prior ro
 ## Next actions and stop conditions
 
 1. Researcher: approve or revise the formal protocol decisions listed in issue #20, including whether to use the RoundRobin/TopKCqi pair observed in RA-ENG-006.
-2. After approval, apply the campaign's current corrected scheduler source overrides, rebuild, register the approved seed schedule, and execute only the approved formal cells. Keep RA-ENG-006 engineering traces separate.
+2. Finish and validate the matched eight-cell pilot, then resume the approved seed/matrix schedule with the corrected source hashes. Keep RA-ENG-006 engineering traces separate.
 3. Analyze validated campaign outputs with run-level uncertainty and all six UE outcomes; request researcher review before any publication package.
 
 ## Reproduction references

@@ -4,7 +4,7 @@
 
 ## Research objective and scope
 
-After feasibility and stock-policy control checks, run the smallest approved multi-user NR campaign that contrasts channel condition, offered load, and stock scheduling policy while measuring all six UEs. Do not treat a successful simulator run as evidence of novelty, causal mechanism, or real-world performance. This report is a template-first approval and readiness record; no formal RA-ENG-007 simulation or analysis was started.
+After feasibility and stock-policy control checks, run the researcher-approved multi-user NR campaign that contrasts channel condition, offered load, and stock scheduling policy while measuring all six UEs. Do not treat a successful simulator run as evidence of novelty, causal mechanism, or real-world performance. This template-first approval report records the authorized matrix and the implementation/readiness work; the first formal pilot attempts are preserved, but no valid pilot outcome is yet claimed.
 
 ## Scientific motivation and hypotheses (human-owned)
 
@@ -65,13 +65,15 @@ Pinned upstream versions are listed in `campaigns/20261111-g1-integrated-v2/UPST
 
 **Observed source drift that must be handled before runs:** the installed RoundRobin source SHA is `8638e94c141d430605d00494f429989dbfa80ea9f8afc522069e0a4898e26272`, while its campaign override SHA is `8d4d640fb14400666fa6bbe38496859d4e14c2dc106883c6e5904d1e41b4be22`. The installed TopK source SHA is `c8aa8e6193a03130131716260fc68ff6eac037c0e04c1a06e8973b41851ed425`, while its override SHA is `ff67a43669574505872791bd1ba0239114d2309a223d3e53a97e1b44c6b71956`. These match the #19 run metadata versus `campaigns/20261111-g1-integrated-v2/source-overrides/SHA256SUMS`; therefore the policy semantics differ and the earlier #19 traces cannot be pooled with a future corrected-source campaign. The local raw/results search found zero files under the v2 run and result roots.
 
-No run command is authorized until the researcher-approved protocol and source state are recorded. The existing package's 160-cell design is documented as a researcher-authored candidate matrix, not as the approved RA-ENG-007 protocol. Formal outputs, if authorized, must go to unique paths under `simulator/runs/20261111-g1-integrated-v2/` or a newly versioned campaign run root and must never overwrite prior attempts.
+The researcher-approved protocol and source state are now recorded. The campaign runner retains the full 160-cell matrix and adds a `--pilot-block` selector for the issue-required first matched 2×2×2 block (seed 11, stationary, light/contending, both channel states, both policies; DL and UL measured together). The pilot selector does not add or alter cells; the full runner subsequently resumes the remaining approved cells. Formal output is kept under `simulator/runs/20261111-g1-integrated-v2/`; failed attempts receive a new attempt number and remain immutable.
 
 ## Tests and verification evidence (logs/paths)
 
-**Observed repository state before this approval:** `simulator/runs/20261111-g1-integrated-v2/` and `results/20261111-g1-integrated-v2/` were absent locally. The campaign README reports 92/160 successful cells, two incomplete attempts, and 68 incomplete cells at its package snapshot; those are package-reported execution counts, not locally inspected raw run evidence or completed analysis. RA-ENG-006 raw logs are separate, one-seed engineering probes and cannot be substituted for formal campaign cells.
+**Observed repository state before this approval:** `simulator/runs/20261111-g1-integrated-v2/` and `results/20261111-g1-integrated-v2/` were absent locally. The campaign README reports 92/160 successful cells, two incomplete attempts, and 68 incomplete cells at its package snapshot; those are package-reported counts, not locally inspected raw evidence or completed analysis. RA-ENG-006 raw logs are separate, one-seed engineering probes.
 
-No RA-ENG-007 build, test suite, run, analysis, or formal result is claimed. Required post-approval verification includes source-override SHA checks, clean build of the pinned NR target, per-cell effective config/provenance, condition/identity checks, six-UE packet/grant reconciliation, and manifest-preserved failed attempts.
+The approved source override manifest verified 13 files. Pre-application copies and before/after hashes are retained in `simulator/logs/RA-ENG-007-20261112/source-backup/`, `source-installed/`, and `source-application.json`. `./ns3 build ns3iboran_nr -j 2` succeeded after rerunning outside the sandbox because the sandbox initially blocked ccache writes. The v2 regression suite passed nine tests, including the new pilot-block selector check.
+
+The first three pilot attempts failed because the runner passed two channel flags not supported by this `iboran_run.py`; those flags duplicate settings already written into `scenario.yaml`. After correcting the runner, two further pilot attempts failed before simulation because the default CLIP model snapshot was uncached and the Xet CDN timed out. These attempts are preserved. The model was provisioned from the official OpenAI ViT-B/16 checkpoint, SHA-256 `5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ecb61988df416f`, then converted with the official Hugging Face Transformers CLIP conversion script (script SHA-256 `8950db3047c67ce8633052c5498e15ca287f4881f501362272b929bac4c3b7fd`). The conversion parity assertions passed; the converted model and local `CLIPProcessor` load offline on CPU. Model bytes remain ignored and are not committed.
 
 ## Raw data and result references
 
@@ -91,15 +93,19 @@ The v2 JSON declares five seeds and type-7 percentiles, but those parameters are
 
 ## Problems, failures, and resolutions
 
-No formal run has been attempted, so there are no RA-ENG-007 run failures. The present blocker is the explicit protocol approval gate, not an execution failure. Preserve this distinction in any future status update.
+1. The first pilot cell exited 2 because two unsupported command-line options were passed; the runner was corrected to use the effective scenario YAML for channel settings. Three failed attempts from this runner version are retained.
+2. The corrected pilot then exited 1 during CLIP initialization because `openai/clip-vit-base-patch16` was not cached and the Hugging Face Xet storage host timed out. Two failed attempts are retained. The exact OpenAI checkpoint was downloaded from its official Azure URL, its URL-embedded SHA-256 verified, and Hugging Face's conversion script verified numeric parity before the model was loaded from local disk. `ftfy==6.3.1` and the OpenAI CLIP source checkout at `/tmp/ra-eng-007-openai-clip` (commit `d05afc436d78f1c48dc0dbf8e5980a9d471f35f6`) were used only for conversion. Full download/conversion provenance and hashes are in the ignored run root.
+3. The initial local build failed because sandbox restrictions made ccache's external write path read-only; the same build command then passed with required filesystem permission. No source/compiler error occurred.
+4. Retrying after correcting runner and embedding dependency uses new attempt directories; prior failed artifacts are never overwritten. Any subsequent simulation failure remains in the manifest and requires trace validation before proceeding.
 
 ## Decisions and evidence
 
 - **Source-verified:** the v2 campaign config specifies channels `all-los`/`ue6-nlos`, mobility `stationary`/`controlled-linear`, four load arms, `RoundRobin`/`TopKCqi`, and seeds `[11,22,33,44,55]`; issue #20 describes a narrower, direction-selected design.
 - **Observed:** no formal raw v2 run/result directory is present locally at report creation.
 - **Researcher-approved:** existing 160-cell v2 protocol as specified in `config/g1-integrated-campaign.json`; exact request and answer recorded above.
-- **Still unresolved:** corrected source application/build, execution integrity, campaign outcomes and statistical interpretation.
-- **Stop condition:** stop on build/regression failure, insufficient storage, source drift during runs, invalid trace/identity joins, or incomplete/failed run integrity; preserve attempts and do not substitute unapproved factors.
+- **Observed:** source overrides are applied, the pinned NR target builds, nine regression checks pass, and the pinned CLIP checkpoint converts and loads offline on CPU.
+- **Still unresolved:** successful full pilot validation, remaining 152 approved cells, analysis, and researcher-owned scientific interpretation.
+- **Stop condition:** stop on source drift during runs, invalid trace/identity joins, or incomplete/failed run integrity; preserve attempts and do not substitute unapproved factors.
 
 ## Final deliverables
 
