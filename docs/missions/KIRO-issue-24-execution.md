@@ -103,7 +103,7 @@ The CPU Torch download blocker is resolved through the documented Aliyun mirror 
 | #13 RA-METHOD-001 | Researcher review gate | Method is documented; it does not authorize autonomous issue execution. |
 | #14 RA-ENG-001 | **Closed as completed** | F1–F6 source audit and bounded probes are recorded; per-UE geometry is explicitly unknown at runtime and outside selected scope. GitHub issue was closed as completed on 2026-11-12. |
 | #15 RA-ENG-002 | **Closed as completed** | Pinned patch, paired same-seed whole-cell LOS/NLOS traces, fixed and RandomWalk probes, build and evidence checks passed. Commit `c9c8e51f6a358f4333367ad3224f8513ab561b95` is verified on remote `main`. No app traffic or radio performance conclusion. |
-| #16 RA-ENG-003 | **Engineering complete; publication/closure pending** | Six-UE synthetic UDP path, per-UE/direction counters and FlowId mapping validated across six cases; upstream CLIP smoke rerun is blocked by external DNS and documented. |
+| #16 RA-ENG-003 | **Closed as complete** | Six-UE synthetic UDP path, per-UE/direction counters and FlowId mapping validated across six cases; Dataset no-flow regression passed; CLIP workload rerun is blocked by external DNS and documented. Commit `9073f6d` is remote-verified. |
 | #17–#19 RA-ENG-004–006 | Next / not started | Proceed in dependency order: packet/grant telemetry, contention calibration, stock controls. |
 | #20 RA-ENG-007 | Gated | Requires completed #15–#19 and explicit researcher approval of formal protocol. |
 | #21 RA-ENG-008 | Not started / dependency blocked | Requires valid #20 campaign outputs. |
@@ -111,7 +111,7 @@ The CPU Torch download blocker is resolved through the documented Aliyun mirror 
 | #23 RA-PLAN-001 | Roadmap recorded | Defines active #14–#22 chain and decision gates. |
 | #24 KIRO | In progress | This portfolio execution report and subsequent evidence updates. |
 
-**As of this update**, #14 and #15 are closed as completed. Commit `c9c8e51f6a358f4333367ad3224f8513ab561b95` is published and remote-verified. RA-ENG-003's implementation and six bounded runs are complete locally; publication and issue closure are pending staged audit/push. RA-ENG-004 is next under the user's portfolio instruction.
+**As of this update**, #14–#16 are closed as completed. Commit `9073f6dce5c19ea6b545b6468d902a653bedfd14` is published and remote-verified; issue #16 was closed after posting its evidence summary. RA-ENG-004 is next under the user's portfolio instruction.
 
 The initial preflight/reconciliation delivery contained eight Markdown paths. Relative-link checking found 67 valid local targets; staged whitespace, credential-pattern, file-size, generated-artifact, and simulator/source-tree checks passed. Exact aggregate staged bytes are recorded in the documentation audit.
 

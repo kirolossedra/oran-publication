@@ -96,4 +96,6 @@ Replayable incremental source patch; six scenario configs; mapper; source-ground
 - [x] README, mission index, and audit updated
 - [x] Paths, claims, parameters, and reproduction commands checked
 - [x] Staged file/size/secret/source-tree audit passed
-- [ ] Commit created and pushed to `main`; remote SHA verified
+- [x] Commit created and pushed to `main`; remote SHA verified
+
+**Publication:** commit `9073f6dce5c19ea6b545b6468d902a653bedfd14` was pushed fast-forward to `main`; `git rev-parse HEAD` and `git ls-remote origin refs/heads/main` returned the same SHA. Worktree was clean after verification.
