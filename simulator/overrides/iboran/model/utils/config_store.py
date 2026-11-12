@@ -64,9 +64,11 @@ class CommonRanParams(BaseModel):
     enableRrcLog: bool = False
 
     rngRun: int = Field(1, ge=1)
-    channelConditionMode: Literal["default", "all-los", "ue6-nlos"] = "default"
+    channelConditionMode: Literal["default", "all-los", "ue6-nlos", "ue-transition"] = "default"
     channelConditionTargetUe: int = Field(6, ge=1)
-    mobilityMode: Literal["random-walk", "stationary", "controlled-linear"] = "random-walk"
+    channelTransitionStartS: float = -1.0
+    channelTransitionEndS: float = -1.0
+    mobilityMode: Literal["random-walk", "stationary", "controlled-linear", "target-controlled-linear"] = "random-walk"
     perUeDlBitRate: list[int] = []
     perUeUlBitRate: list[int] = []
     receiverDrainTime: float = Field(0.0, ge=0.0)

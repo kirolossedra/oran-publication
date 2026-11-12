@@ -68,7 +68,9 @@ struct CommonRanParams
     uint32_t rngRun; // ns-3 RngRun and application RNG seed
 
     std::string channelConditionMode; // default, all-los, or ue6-nlos (engineering probe)
-    uint32_t channelConditionTargetUe; // one-based UE index used by ue6-nlos
+    uint32_t channelConditionTargetUe; // one-based target UE index
+    double channelTransitionStartS; // NLOS start, seconds
+    double channelTransitionEndS; // NLOS end, seconds
     std::string mobilityMode; // random-walk, stationary, or controlled-linear
     std::vector<uint32_t> perUeDlBitRate; // optional bps override by one-based UE order
     std::vector<uint32_t> perUeUlBitRate; // optional bps override by one-based UE order

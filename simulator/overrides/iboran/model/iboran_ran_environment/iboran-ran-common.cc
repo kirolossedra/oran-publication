@@ -329,7 +329,8 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
         }
     }
     else if (commonParams.mobilityMode == "stationary" ||
-             commonParams.mobilityMode == "controlled-linear")
+             commonParams.mobilityMode == "controlled-linear" ||
+             commonParams.mobilityMode == "target-controlled-linear")
     {
         MobilityHelper ueMobility;
         ueMobility.SetMobilityModel(commonParams.mobilityMode == "stationary"
@@ -345,7 +346,9 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
             const Vector pos(cx + radius * std::cos(angle), cy + radius * std::sin(angle), 1.5);
             auto mobility = ueNodes.Get(i)->GetObject<MobilityModel>();
             mobility->SetPosition(pos);
-            if (commonParams.mobilityMode == "controlled-linear")
+            if (commonParams.mobilityMode == "controlled-linear" ||
+                (commonParams.mobilityMode == "target-controlled-linear" &&
+                 i + 1 == commonParams.channelConditionTargetUe))
             {
                 auto velocity = ueNodes.Get(i)->GetObject<ConstantVelocityMobilityModel>();
                 velocity->SetVelocity(Vector(1.0, 0.0, 0.0));

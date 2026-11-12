@@ -104,6 +104,8 @@ SimParams::SimParams()
     common.rngRun = 1;
     common.channelConditionMode = "default";
     common.channelConditionTargetUe = 6;
+    common.channelTransitionStartS = -1.0;
+    common.channelTransitionEndS = -1.0;
     common.mobilityMode = "random-walk";
     common.receiverDrainTime = 0.0;
     common.enableNetAnim = true;
@@ -329,6 +331,14 @@ SimParams::LoadFromYaml(const std::string& filepath)
         if (c["channelConditionTargetUe"])
         {
             common.channelConditionTargetUe = c["channelConditionTargetUe"].as<uint32_t>();
+        }
+        if (c["channelTransitionStartS"])
+        {
+            common.channelTransitionStartS = c["channelTransitionStartS"].as<double>();
+        }
+        if (c["channelTransitionEndS"])
+        {
+            common.channelTransitionEndS = c["channelTransitionEndS"].as<double>();
         }
         if (c["mobilityMode"])
         {

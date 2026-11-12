@@ -63,8 +63,14 @@ class IbOranSelectiveConditionModel : public ChannelConditionModel
 
     void Configure(Ptr<ChannelConditionModel> delegate,
                    Ptr<const MobilityModel> target,
-                   bool selective)
+                   bool selective,
+                   bool transition = false,
+                   double startS = -1.0,
+                   double endS = -1.0)
     {
+        m_transition = transition;
+        m_transitionStartS = startS;
+        m_transitionEndS = endS;
         m_delegate = delegate;
         m_target = target;
         m_selective = selective;
@@ -73,11 +79,16 @@ class IbOranSelectiveConditionModel : public ChannelConditionModel
     Ptr<ChannelCondition> GetChannelCondition(Ptr<const MobilityModel> a,
                                               Ptr<const MobilityModel> b) const override
     {
-        if (m_selective && (a == m_target || b == m_target))
+        if (!m_selective || (a != m_target && b != m_target))
         {
-            return m_nlos;
+            return m_los;
         }
-        return m_los;
+        if (m_transition)
+        {
+            const double t = Simulator::Now().GetSeconds();
+            return t >= m_transitionStartS && t < m_transitionEndS ? m_nlos : m_los;
+        }
+        return m_nlos;
     }
 
     int64_t AssignStreams(int64_t stream) override
@@ -91,6 +102,9 @@ class IbOranSelectiveConditionModel : public ChannelConditionModel
     Ptr<ChannelCondition> m_los;
     Ptr<ChannelCondition> m_nlos;
     bool m_selective{false};
+    bool m_transition{false};
+    double m_transitionStartS{-1.0};
+    double m_transitionEndS{-1.0};
 };
 
 NS_OBJECT_ENSURE_REGISTERED(IbOranSelectiveConditionModel);
@@ -130,6 +144,19 @@ LogChannelConditionSnapshot(Ptr<ChannelConditionModel> conditionModel,
 }
 
 void
+LogTransitionBoundary(Ptr<ChannelConditionModel> conditionModel,
+                      Ptr<const MobilityModel> target,
+                      Ptr<const MobilityModel> gnb,
+                      uint32_t targetIndex)
+{
+    const auto condition = conditionModel->GetChannelCondition(target, gnb);
+    const char* label = condition->GetLosCondition() == ChannelCondition::LOS ? "LOS" : "NLOS";
+    std::cout << std::fixed << std::setprecision(6) << "CHANNEL_TRANSITION,time_s="
+              << Simulator::Now().GetSeconds() << ",ue_index=" << targetIndex
+              << ",condition=" << label << '\n';
+}
+
+void
 InstallSelectiveConditionModel(const CommonRanParams& commonParams,
                                OperationBandInfo& band,
                                NodeContainer& ueNodes,
@@ -140,15 +167,23 @@ InstallSelectiveConditionModel(const CommonRanParams& commonParams,
     {
         return;
     }
-    if (mode != "all-los" && mode != "ue6-nlos")
+    if (mode != "all-los" && mode != "ue6-nlos" && mode != "ue-transition")
     {
         throw std::invalid_argument("channelConditionMode must be default, all-los, or ue6-nlos");
     }
-    if (mode == "ue6-nlos" &&
+    if ((mode == "ue6-nlos" || mode == "ue-transition") &&
         (commonParams.channelConditionTargetUe == 0 ||
          commonParams.channelConditionTargetUe > ueNodes.GetN()))
     {
         throw std::invalid_argument("channelConditionTargetUe is outside the configured UE set");
+    }
+
+    if (mode == "ue-transition" &&
+        !(commonParams.channelTransitionStartS > 0.0 &&
+          commonParams.channelTransitionEndS > commonParams.channelTransitionStartS &&
+          commonParams.channelTransitionEndS < commonParams.simTime))
+    {
+        throw std::invalid_argument("ue-transition requires 0 < start < end < simTime");
     }
 
     const auto channel = band.GetBwpAt(0, 0)->GetChannel();
@@ -165,11 +200,16 @@ InstallSelectiveConditionModel(const CommonRanParams& commonParams,
     NS_ABORT_MSG_IF(original != threeGppChannel->GetChannelConditionModel(),
                     "NR channel and pathloss do not share the same condition model");
     auto selective = CreateObject<IbOranSelectiveConditionModel>();
-    const auto target = mode == "ue6-nlos"
+    const auto target = (mode == "ue6-nlos" || mode == "ue-transition")
                             ? ueNodes.Get(commonParams.channelConditionTargetUe - 1)
                                   ->GetObject<MobilityModel>()
                             : nullptr;
-    selective->Configure(original, target, mode == "ue6-nlos");
+    selective->Configure(original,
+                         target,
+                         mode == "ue6-nlos" || mode == "ue-transition",
+                         mode == "ue-transition",
+                         commonParams.channelTransitionStartS,
+                         commonParams.channelTransitionEndS);
     pathloss->SetChannelConditionModel(selective);
     threeGppChannel->SetChannelConditionModel(selective);
 
@@ -179,6 +219,24 @@ InstallSelectiveConditionModel(const CommonRanParams& commonParams,
     std::cout << "CHANNEL_CONDITION_MODE=" << mode
               << ",target_ue_index=" << commonParams.channelConditionTargetUe
               << ",shared_condition_model=" << selective->GetInstanceTypeId().GetName() << '\n';
+    if (mode == "ue-transition")
+    {
+        const auto targetMobility = ueNodes.Get(commonParams.channelConditionTargetUe - 1)
+                                        ->GetObject<MobilityModel>();
+        const auto gnbMobility = gnbNodes.Get(0)->GetObject<MobilityModel>();
+        Simulator::Schedule(Seconds(commonParams.channelTransitionStartS),
+                            &LogTransitionBoundary,
+                            selective,
+                            targetMobility,
+                            gnbMobility,
+                            commonParams.channelConditionTargetUe);
+        Simulator::Schedule(Seconds(commonParams.channelTransitionEndS),
+                            &LogTransitionBoundary,
+                            selective,
+                            targetMobility,
+                            gnbMobility,
+                            commonParams.channelConditionTargetUe);
+    }
     Simulator::Schedule(Seconds(0),
                         &LogChannelConditionSnapshot,
                         selective,
