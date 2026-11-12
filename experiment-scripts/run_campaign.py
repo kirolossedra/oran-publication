@@ -44,6 +44,8 @@ RATES = SPEC["traffic_bps_per_ue_per_direction"]
 
 # Outcome-sensitive files, including the policy code omitted from the previous provenance record.
 OUTCOME_SOURCE_PATHS = (
+    SPEC_PATH,  # changing high-throughput loads must invalidate all old results
+    BASE,       # effective base radio settings influence results
     SIM / "contrib/iboran/model/iboran_application/iboran-application.cc",
     SIM / "contrib/iboran/model/iboran_mac_scheduler/iboran-nr-mac-scheduler.cc",
     SIM / "contrib/iboran/model/iboran_ran_environment/iboran-ran-common.cc",
@@ -145,8 +147,18 @@ def attempt_config(base_cfg: dict, cell: dict, path: Path) -> dict:
     common = cfg["common"]
     offered = RATES[cell["load"]]
     offered_dl, offered_ul = offered["DL"], offered["UL"]
+    # Apply the radio and backhaul settings from the tracked protocol,
+    # not undocumented defaults from the local upstream YAML.
+    radio = SPEC["radio"]
+    cfg.setdefault("nr", {}).update({
+        "centralFrequency": radio["central_frequency_hz"],
+        "bandwidth": radio["bandwidth_hz"],
+        "numerology": radio["numerology"],
+        "tddPattern": radio["tdd_pattern"],
+    })
     common.update(
         {
+            "backhaulDelay": radio["backhaul_delay_ms"],
             "simTime": SPEC["simulation"]["duration_s"],
             "ueNum": 6,
             "xnbNum": 1,
@@ -322,6 +334,9 @@ def main() -> int:
             "packet_measurement_schema": "serialized-app-header-v1",
             "config_sha256": sha256(cfg_path),
             "source_sha256": current_source_hashes,
+            "research_intent": SPEC.get("experiment_intent", {}),
+            "radio": SPEC["radio"],
+            "offered_bps_per_ue": RATES[cell["load"]],
             "started_unix": time.time(),
         }
         (attempt / "run-metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
