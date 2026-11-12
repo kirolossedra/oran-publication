@@ -1,0 +1,56 @@
+{
+  "campaign_id": "20261111-g1-integrated-v2",
+  "channels": ["all-los", "ue6-nlos"],
+  "mobility_modes": ["stationary", "controlled-linear"],
+  "loads": ["light", "contending", "dl-contending", "ul-contending"],
+  "policies": ["RoundRobin", "TopKCqi"],
+  "seeds": [11, 22, 33, 44, 55],
+  "directions_measured_together": ["DL", "UL"],
+  "traffic_bps_per_ue_per_direction": {
+    "light": {"DL": 20000, "UL": 20000},
+    "contending": {"DL": 6000000, "UL": 6000000},
+    "dl-contending": {"DL": 6000000, "UL": 20000},
+    "ul-contending": {"DL": 20000, "UL": 6000000}
+  },
+  "simulation": {
+    "duration_s": 20.0,
+    "application_start_s": 1.1,
+    "receiver_drain_s": 1.0,
+    "packet_payload_bytes": 512,
+    "udp": true,
+    "repeat_until_source_stop": true,
+    "netanim_enabled": false
+  },
+  "topology": {
+    "gnb_position_m": [250.0, 250.0, 30.0],
+    "ue_height_m": 1.5,
+    "ue_initial_radius_m": 80.0,
+    "controlled_linear_velocity_m_per_s": [1.0, 0.0, 0.0],
+    "ue_count": 6,
+    "gnb_count": 1
+  },
+  "scheduler": {
+    "dapp_k": 1,
+    "xapp_policy": "Bypass",
+    "control_period_subframes": 1
+  },
+  "radio": {
+    "central_frequency_hz": 3500000000,
+    "bandwidth_hz": 10000000,
+    "numerology": 1,
+    "tdd_pattern": "DL|DL|DL|DL|F|UL|UL|UL|UL|F|",
+    "backhaul_delay_ms": 10.0
+  },
+  "percentile_method": "linear interpolation, Hyndman-Fan type 7",
+  "p99_sample_flag_threshold": 1000,
+  "uncertainty_unit": "simulation run / matched seed",
+  "paired_comparisons": [
+    "ue6-nlos minus all-los",
+    "controlled-linear minus stationary",
+    "bidirectional-contending minus light",
+    "dl-contending minus light",
+    "ul-contending minus light",
+    "dl-contending minus ul-contending",
+    "TopKCqi minus RoundRobin"
+  ]
+}

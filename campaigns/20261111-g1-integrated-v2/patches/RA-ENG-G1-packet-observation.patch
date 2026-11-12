@@ -1,0 +1,192 @@
+--- a/model/iboran_application/iboran-application.cc
++++ b/model/iboran_application/iboran-application.cc
+@@ -24,6 +24,7 @@
+ #include "ns3/node.h"
+ #include "ns3/nstime.h"
+ #include "ns3/simulator.h"
++#include "ns3/header.h"
+ #include "ns3/socket-factory.h"
+ #include "ns3/string.h"
+ #include "ns3/tcp-socket-factory.h"
+@@ -34,6 +35,7 @@
+ #include <chrono>
+ #include <cstdint>
+ #include <cstring>
++#include <cstdlib>
+ #include <fstream>
+ #include <iomanip>
+ #include <random>
+@@ -43,6 +45,62 @@
+ namespace ns3
+ {
+ 
++namespace
++{
++class IbOranPacketObservationHeader : public Header
++{
++  public:
++    static TypeId GetTypeId()
++    {
++        static TypeId tid = TypeId("ns3::IbOranPacketObservationHeader")
++                                .SetParent<Header>().SetGroupName("IbOran")
++                                .AddConstructor<IbOranPacketObservationHeader>();
++        return tid;
++    }
++    TypeId GetInstanceTypeId() const override { return GetTypeId(); }
++    uint32_t GetSerializedSize() const override { return 18; }
++    void Serialize(Buffer::Iterator i) const override
++    {
++        i.WriteHtonU32(m_sequence); i.WriteHtonU64(m_txNs); i.WriteHtonU16(m_rnti);
++        i.WriteHtonU16(m_ue); i.WriteHtonU16(m_direction);
++    }
++    uint32_t Deserialize(Buffer::Iterator i) override
++    {
++        m_sequence = i.ReadNtohU32(); m_txNs = i.ReadNtohU64(); m_rnti = i.ReadNtohU16();
++        m_ue = i.ReadNtohU16(); m_direction = i.ReadNtohU16();
++        return GetSerializedSize();
++    }
++    void Print(std::ostream& os) const override { os << m_sequence << '@' << m_txNs; }
++    void Set(uint32_t seq, uint64_t time, uint16_t rnti, uint16_t ue, uint16_t direction)
++    { m_sequence = seq; m_txNs = time; m_rnti = rnti; m_ue = ue; m_direction = direction; }
++    uint32_t Sequence() const { return m_sequence; }
++    uint64_t TxNs() const { return m_txNs; }
++    uint16_t Rnti() const { return m_rnti; }
++    uint16_t Ue() const { return m_ue; }
++    uint16_t Direction() const { return m_direction; }
++  private:
++    uint32_t m_sequence{0}; uint64_t m_txNs{0}; uint16_t m_rnti{0};
++    uint16_t m_ue{0}; uint16_t m_direction{0};
++};
++NS_OBJECT_ENSURE_REGISTERED(IbOranPacketObservationHeader);
++
++void RecordPacketEvent(const char* event, const IbOranPacketObservationHeader& tag, uint32_t bytes)
++{
++    const char* root = std::getenv("IBORAN_RUN_DIR");
++    if (!root) return;
++    static bool initialized = false;
++    std::ofstream out(std::string(root) + "/logs/packet-events.csv", std::ios::app);
++    if (!initialized)
++    {
++        out << "event,time_ns,ue_index,rnti,direction,sequence,tx_time_ns,bytes\n";
++        initialized = true;
++    }
++    out << event << ',' << Simulator::Now().GetNanoSeconds() << ',' << tag.Ue() << ','
++        << tag.Rnti() << ',' << tag.Direction() << ',' << tag.Sequence() << ','
++        << tag.TxNs() << ',' << bytes << '\n';
++}
++}
++
+ NS_LOG_COMPONENT_DEFINE("IbOranApplication");
+ NS_OBJECT_ENSURE_REGISTERED(IbOranTransmissionApplication);
+ NS_OBJECT_ENSURE_REGISTERED(IbOranReceptionApplication);
+@@ -151,6 +209,8 @@
+       m_txRepeat(1),
+       m_repeatCount(1),
+       m_txTotalBytes(0),
++      m_sequenceNumber(0),
++      m_ueIndex(0),
+       m_connected(false),
+       m_cachedRnti(0),
+       m_useUdp(true),
+@@ -289,6 +349,8 @@
+     m_useUdp = useUdp;
+ }
+ 
++void IbOranTransmissionApplication::SetUeIndex(uint32_t index) { m_ueIndex = index; }
++
+ uint32_t
+ IbOranTransmissionApplication::GetTotalBytesTransmitted() const
+ {
+@@ -484,6 +546,14 @@
+ 
+     Ptr<Packet> packet = Create<Packet>(m_data.data() + m_dataOffset, toSend);
+ 
++    IbOranPacketObservationHeader observation;
++    observation.Set(m_sequenceNumber, Simulator::Now().GetNanoSeconds(), GetRnti(),
++                    static_cast<uint16_t>(m_ueIndex), static_cast<uint16_t>(m_linkDirection));
++    // Carry measurement identity in the UDP datagram itself. PacketTags are
++    // simulator metadata and may be copied across NR MAC aggregation/reassembly,
++    // so they cannot safely identify individual received application packets.
++    packet->AddHeader(observation);
++
+     RefreshRntiCriticality(packet);
+     PublishRntiCriticality();
+ 
+@@ -500,6 +570,8 @@
+ 
+     m_dataOffset += toSend;
+     m_txTotalBytes += toSend;
++    RecordPacketEvent("TX", observation, toSend);
++    ++m_sequenceNumber;
+ 
+     NS_LOG_DEBUG("Sent packet: " << toSend << " bytes | "
+                                  << "Offset: " << m_dataOffset << "/" << m_data.size() << " | "
+@@ -741,6 +813,8 @@
+     : m_format(DataFormat::IMAGE),
+       m_rxTotalBytes(0),
+       m_packetCount(0),
++      m_ueIndex(0),
++      m_linkDirection(LinkDirection::DOWNLINK),
+       m_useUdp(true)
+ {
+     NS_LOG_FUNCTION(this);
+@@ -782,6 +856,9 @@
+     m_useUdp = useUdp;
+ }
+ 
++void IbOranReceptionApplication::SetUeIndex(uint32_t index) { m_ueIndex = index; }
++void IbOranReceptionApplication::SetLinkDirection(LinkDirection direction) { m_linkDirection = direction; }
++
+ uint32_t
+ IbOranReceptionApplication::GetTotalBytesReceived() const
+ {
+@@ -895,6 +972,12 @@
+ 
+     while ((packet = socket->RecvFrom(from)))
+     {
++        IbOranPacketObservationHeader observation;
++        if (packet->PeekHeader(observation))
++        {
++            packet->RemoveHeader(observation);
++            RecordPacketEvent("RX", observation, packet->GetSize());
++        }
+         uint32_t packetSize = packet->GetSize();
+         std::vector<uint8_t> buffer(packetSize);
+         packet->CopyData(buffer.data(), packetSize);
+--- a/model/iboran_application/iboran-application.h
++++ b/model/iboran_application/iboran-application.h
+@@ -77,6 +77,7 @@
+ 
+     void SetUeObjectId(std::string objectId);
+     void SetInputImageFormat(std::string format);
++    void SetUeIndex(uint32_t index);
+ 
+   protected:
+     void StartApplication() override;
+@@ -112,6 +113,8 @@
+     uint32_t m_txRepeat;                 // number of times to repeat the transmission
+     uint32_t m_repeatCount;              // current repeat iteration
+     uint32_t m_txTotalBytes;             // total bytes transmitted
++    uint32_t m_sequenceNumber;
++    uint32_t m_ueIndex;
+     std::vector<uint8_t> m_originalData; // preserve original data for replay
+     bool m_connected;                    // connection status
+     mutable uint16_t m_cachedRnti;       // cached RNTI value
+@@ -157,6 +160,8 @@
+     void SetDataFormat(DataFormat format);
+ 
+     void SetUseUdp(bool useUdp);
++    void SetUeIndex(uint32_t index);
++    void SetLinkDirection(LinkDirection direction);
+ 
+     uint32_t GetTotalBytesReceived() const;
+     uint32_t GetReceivedDataSize() const;
+@@ -178,6 +183,8 @@
+     DataFormat m_format;
+     uint32_t m_rxTotalBytes;
+     uint32_t m_packetCount;
++    uint32_t m_ueIndex;
++    LinkDirection m_linkDirection;
+     bool m_useUdp;
+ 
+     Ptr<Socket> m_socket;
