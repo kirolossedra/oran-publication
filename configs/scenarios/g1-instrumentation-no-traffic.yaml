@@ -1,0 +1,13 @@
+rat_type: NR
+common:
+  simTime: 3.5
+  ueNum: 6
+  enableDlFlow: false
+  enableUlFlow: false
+  rngRun: 1
+  mobilityMode: Fixed
+  trafficMode: Dataset
+  enableRadioMobilityTrace: true
+  radioMobilityTracePeriodSeconds: 0.5
+nr:
+  channelCondition: LOS

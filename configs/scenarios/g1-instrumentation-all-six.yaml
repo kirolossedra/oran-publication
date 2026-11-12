@@ -1,0 +1,21 @@
+rat_type: NR
+common:
+  simTime: 3.5
+  ueNum: 6
+  enableDlFlow: false
+  enableUlFlow: false
+  rngRun: 1
+  mobilityMode: Fixed
+  trafficMode: Udp
+  enablePacketTelemetry: true
+  enableRadioMobilityTrace: true
+  radioMobilityTracePeriodSeconds: 0.5
+  ueTraffic:
+    - {ueIndex: 0, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 1, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 2, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 3, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 4, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+    - {ueIndex: 5, enableUl: true, enableDl: true, ulBitRate: 8000, dlBitRate: 8000, ulPacketSize: 128, dlPacketSize: 128, startTime: 1.0, stopTime: 2.5, sinkStopTime: 3.0}
+nr:
+  channelCondition: LOS

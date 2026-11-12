@@ -1,0 +1,45 @@
+diff --git a/model/nr-gnb-mac.cc b/model/nr-gnb-mac.cc
+index 9fdf7d2e..862a43f3 100644
+--- a/model/nr-gnb-mac.cc
++++ b/model/nr-gnb-mac.cc
+@@ -422,0 +423,4 @@ NrGnbMac::GetTypeId()
++            .AddTraceSource("AppliedGrant",
++                            "Applied DATA DCI allocation passed to the gNB PHY.",
++                            MakeTraceSourceAccessor(&NrGnbMac::m_appliedGrant),
++                            "ns3::NrGnbMac::AppliedGrantTracedCallback")
+@@ -1220,0 +1225,21 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
++        if (varTtiAllocInfo.m_dci->m_type == DciInfoElementTdma::DATA)
++        {
++            const auto& dci = varTtiAllocInfo.m_dci;
++            NrSchedulingCallbackInfo grant;
++            grant.m_frameNum = ind.m_sfnSf.GetFrame();
++            grant.m_subframeNum = ind.m_sfnSf.GetSubframe();
++            grant.m_slotNum = ind.m_sfnSf.GetSlot();
++            grant.m_symStart = dci->m_symStart;
++            grant.m_numSym = dci->m_numSym;
++            grant.m_tbSize = dci->m_tbSize;
++            grant.m_mcs = dci->m_mcs;
++            grant.m_rnti = dci->m_rnti;
++            grant.m_bwpId = GetBwpId();
++            grant.m_ndi = dci->m_ndi;
++            grant.m_rv = dci->m_rv;
++            grant.m_harqId = dci->m_harqProcess;
++            grant.m_isUplink = dci->m_format == DciInfoElementTdma::UL;
++            grant.m_numRbPerRbg = GetNumRbPerRbg();
++            grant.m_rbgBitmask = dci->m_rbgBitmask;
++            m_appliedGrant(grant);
++        }
+diff --git a/model/nr-gnb-mac.h b/model/nr-gnb-mac.h
+index 52778024..645d1d1b 100644
+--- a/model/nr-gnb-mac.h
++++ b/model/nr-gnb-mac.h
+@@ -412,0 +413 @@ class NR_EXPORT NrGnbMac : public Object
++    TracedCallback<NrSchedulingCallbackInfo> m_appliedGrant;
+diff --git a/model/nr-phy-mac-common.h b/model/nr-phy-mac-common.h
+index 81bbb10b..a8708c96 100644
+--- a/model/nr-phy-mac-common.h
++++ b/model/nr-phy-mac-common.h
+@@ -892,0 +893,3 @@ struct NR_EXPORT NrSchedulingCallbackInfo
++    bool m_isUplink{false};           //!< true for an UL grant
++    uint32_t m_numRbPerRbg{0};        //!< configured RBs represented by each RBG
++    std::vector<bool> m_rbgBitmask{}; //!< applied frequency allocation bitmap

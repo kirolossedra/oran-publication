@@ -1,0 +1,690 @@
+diff --git a/model/iboran_campaign/iboranConfig.yaml b/model/iboran_campaign/iboranConfig.yaml
+index 5525166..cbcbfed 100644
+--- a/model/iboran_campaign/iboranConfig.yaml
++++ b/model/iboran_campaign/iboranConfig.yaml
+@@ -52,0 +53,4 @@ common:
++  mobilityMode: RandomWalk       # RandomWalk (upstream), Fixed, ControlledMoving
++  controlledMobilitySpeedMps: 0.83  # [m/s], used by ControlledMoving
++  enableRadioMobilityTrace: false
++  radioMobilityTracePeriodSeconds: 1.0 # [s]
+@@ -74,0 +79 @@ nr:
++  channelCondition: Default # Default (scenario), LOS, NLOS; applies to every UE link
+diff --git a/model/iboran_campaign/iboran_orchestrator.py b/model/iboran_campaign/iboran_orchestrator.py
+index f8ebbd1..6cb840a 100755
+--- a/model/iboran_campaign/iboran_orchestrator.py
++++ b/model/iboran_campaign/iboran_orchestrator.py
+@@ -192 +192,14 @@ class IbOranOrchestrator:
+-        self._prepare_kpi()
++        has_application_traffic = (
++            self.common_params.enableDlFlow or self.common_params.enableUlFlow
++        )
++        if has_application_traffic:
++            self._prepare_kpi()
++        else:
++            print(
++                "ib-ORAN Orchestrator: no application flows enabled; "
++                "skipping dataset and intent KPI initialization."
++            )
++            self.kpi = {
++                key: self._link_pair(template)
++                for key, template in _BASE_KPI_TEMPLATES.items()
++            }
+@@ -293 +306,2 @@ class IbOranOrchestrator:
+-            self.compute_ib_kpis()
++            if has_application_traffic:
++                self.compute_ib_kpis()
+@@ -476,0 +491,6 @@ class IbOranOrchestrator:
++        if self.common_params.trafficMode == "Udp":
++            print(
++                "ib-ORAN Orchestrator: retaining UDP FlowMonitor XML for "
++                "per-UE flow identity mapping."
++            )
++            return
+diff --git a/model/iboran_campaign/iboran_run.py b/model/iboran_campaign/iboran_run.py
+index 6221880..13a4fae 100755
+--- a/model/iboran_campaign/iboran_run.py
++++ b/model/iboran_campaign/iboran_run.py
+@@ -12,0 +13 @@ import argparse
++import yaml
+@@ -27,0 +29,4 @@ def main():
++    if args.scenario_config:
++        with open(args.scenario_config) as scenario_file:
++            scenario_overrides = yaml.safe_load(scenario_file) or {}
++        overrides = _deep_merge(scenario_overrides, overrides)
+@@ -121,0 +127,5 @@ def _config_args():
++    parser.add_argument(
++        "--scenario_config",
++        default=None,
++        help="Optional YAML override layered onto iboranConfig.yaml",
++    )
+diff --git a/model/iboran_ran_environment/iboran-nr-environment.cc b/model/iboran_ran_environment/iboran-nr-environment.cc
+index d35c84b..26590d7 100644
+--- a/model/iboran_ran_environment/iboran-nr-environment.cc
++++ b/model/iboran_ran_environment/iboran-nr-environment.cc
+@@ -36,0 +37,24 @@ NS_LOG_COMPONENT_DEFINE("IbOranNrEnvironment");
++namespace
++{
++void
++TraceAppliedNrGrant(NrSchedulingCallbackInfo grant)
++{
++    uint32_t allocatedRbg = 0;
++    std::string bitmap;
++    bitmap.reserve(grant.m_rbgBitmask.size());
++    for (bool bit : grant.m_rbgBitmask)
++    {
++        allocatedRbg += bit ? 1 : 0;
++        bitmap.push_back(bit ? '1' : '0');
++    }
++    std::cout << "APPLIED_GRANT," << Simulator::Now().GetNanoSeconds() << ','
++              << (grant.m_isUplink ? "UL" : "DL") << ',' << grant.m_rnti << ','
++              << grant.m_frameNum << ',' << +grant.m_subframeNum << ',' << grant.m_slotNum << ','
++              << +grant.m_symStart << ',' << +grant.m_numSym << ',' << +grant.m_bwpId << ','
++              << allocatedRbg << ',' << grant.m_numRbPerRbg << ','
++              << allocatedRbg * grant.m_numRbPerRbg << ',' << +grant.m_mcs << ','
++              << grant.m_tbSize << ',' << +grant.m_ndi << ',' << +grant.m_rv << ','
++              << +grant.m_harqId << ',' << bitmap << '\n';
++}
++} // namespace
++
+@@ -53 +77 @@ void
+-SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
++SetupNrChannelModel(const NrParams& nrParams, Ptr<NrChannelHelper> channelHelper)
+@@ -55 +79,5 @@ SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
+-    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
++    NS_ABORT_MSG_IF(nrParams.channelCondition != "Default" && nrParams.channelCondition != "LOS" &&
++                        nrParams.channelCondition != "NLOS",
++                    "Unknown nr.channelCondition '" << nrParams.channelCondition
++                                                       << "' (expected Default, LOS, NLOS)");
++    channelHelper->ConfigureFactories("UMi", nrParams.channelCondition, "ThreeGpp");
+@@ -57 +85,6 @@ SetupNrChannelModel(Ptr<NrChannelHelper> channelHelper)
+-    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
++    if (nrParams.channelCondition == "Default")
++    {
++        // The UMi default condition model supports UpdatePeriod. Forced LOS/NLOS
++        // condition classes are stateless and do not expose this attribute.
++        channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
++    }
+@@ -210 +243 @@ main(int argc, char* argv[])
+-    SetupNrChannelModel(channelHelper);
++    SetupNrChannelModel(nrParams, channelHelper);
+@@ -214,0 +248,4 @@ main(int argc, char* argv[])
++    PointerValue conditionValue;
++    allBwps.at(0).get()->GetChannel()->GetPropagationLossModel()->GetAttribute(
++        "ChannelConditionModel", conditionValue);
++
+@@ -235,0 +273,6 @@ main(int argc, char* argv[])
++    auto gnbDevice = DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0));
++    NS_ABORT_MSG_IF(!gnbDevice ||
++                        !gnbDevice->GetMac(0)->TraceConnectWithoutContext(
++                            "AppliedGrant", MakeCallback(&TraceAppliedNrGrant)),
++                    "Failed to attach applied NR grant trace");
++
+@@ -264,0 +308,10 @@ main(int argc, char* argv[])
++    if (commonParams.enableRadioMobilityTrace)
++    {
++        ScheduleFronthaulStateTrace(gnbNodes,
++                                    ueNodes,
++                                    ueDevs,
++                                    conditionValue.Get<ChannelConditionModel>(),
++                                    commonParams.radioMobilityTracePeriodSeconds,
++                                    commonParams.simTime);
++    }
++
+diff --git a/model/iboran_ran_environment/iboran-ran-common.cc b/model/iboran_ran_environment/iboran-ran-common.cc
+index ef81b97..d522059 100644
+--- a/model/iboran_ran_environment/iboran-ran-common.cc
++++ b/model/iboran_ran_environment/iboran-ran-common.cc
+@@ -16,0 +17,2 @@
++#include <ns3/applications-module.h>
++
+@@ -22,0 +25 @@
++#include <map>
+@@ -28,0 +32,101 @@ namespace ns3
++namespace
++{
++struct UdpFlowCounters
++{
++    uint64_t txPackets{0};
++    uint64_t txBytes{0};
++    uint64_t rxPackets{0};
++    uint64_t rxBytes{0};
++};
++std::map<uint16_t, UdpFlowCounters> g_udpFlowCounters;
++
++void
++CountUdpTx(Ptr<const Packet> packet, const Address&, const Address& peer)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(peer).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.txPackets;
++    counters.txBytes += packet->GetSize();
++}
++
++uint64_t
++GetPayloadSize(const Ptr<const Packet>& packet)
++{
++    Ptr<Packet> copy = packet->Copy();
++    SeqTsSizeHeader header;
++    copy->RemoveHeader(header);
++    return copy->GetSize();
++}
++
++void
++CountUdpTxWithHeader(Ptr<const Packet> packet, const Address&, const Address& peer)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(peer).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.txPackets;
++    counters.txBytes += GetPayloadSize(packet);
++}
++
++void
++CountUdpRxWithHeader(Ptr<const Packet> packet, const Address&, const Address& local)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(local).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.rxPackets;
++    counters.rxBytes += GetPayloadSize(packet);
++}
++
++void
++CountUdpRx(Ptr<const Packet> packet, const Address&, const Address& local)
++{
++    const uint16_t port = InetSocketAddress::ConvertFrom(local).GetPort();
++    auto& counters = g_udpFlowCounters[port];
++    ++counters.rxPackets;
++    counters.rxBytes += packet->GetSize();
++}
++
++void
++TraceUdpPacketTx(Ptr<const Packet>,
++                 const Address& from,
++                 const Address& to,
++                 const SeqTsSizeHeader& header)
++{
++    const auto source = InetSocketAddress::ConvertFrom(from);
++    const auto destination = InetSocketAddress::ConvertFrom(to);
++    const uint64_t payloadBytes = header.GetSize() - header.GetSerializedSize();
++    std::cout << "PACKET_TX," << Simulator::Now().GetNanoSeconds() << ',' << header.GetSeq() << ','
++              << header.GetTs().GetNanoSeconds() << ',' << payloadBytes << ',' << source.GetIpv4()
++              << ',' << source.GetPort() << ',' << destination.GetIpv4() << ','
++              << destination.GetPort() << '\n';
++}
++
++void
++TraceUdpPacketRx(Ptr<const Packet>,
++                 const Address& from,
++                 const Address& local,
++                 const SeqTsSizeHeader& header)
++{
++    const auto source = InetSocketAddress::ConvertFrom(from);
++    const auto destination = InetSocketAddress::ConvertFrom(local);
++    const uint64_t payloadBytes = header.GetSize() - header.GetSerializedSize();
++    std::cout << "PACKET_RX," << Simulator::Now().GetNanoSeconds() << ',' << header.GetSeq() << ','
++              << header.GetTs().GetNanoSeconds() << ',' << payloadBytes << ',' << source.GetIpv4()
++              << ',' << source.GetPort() << ',' << destination.GetIpv4() << ','
++              << destination.GetPort() << '\n';
++}
++
++void
++PrintUdpFlowResult(uint32_t ueIndex,
++                   const std::string& direction,
++                   Ipv4Address ueAddress,
++                   Ipv4Address remoteAddress,
++                   uint16_t port,
++                   Ptr<NrUeNetDevice> ueDevice)
++{
++    const auto& counters = g_udpFlowCounters[port];
++    const uint16_t rnti = ueDevice ? ueDevice->GetRrc()->GetRnti() : 0;
++    std::cout << "UE_TRAFFIC_RESULT," << direction << ',' << ueIndex << ',' << ueAddress << ','
++              << rnti << ',' << remoteAddress << ',' << port << ',' << counters.txPackets << ','
++              << counters.txBytes << ',' << counters.rxPackets << ',' << counters.rxBytes << '\n';
++}
++} // namespace
+@@ -311,20 +415 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
+-    // UEs with random walk mobility
+-    MobilityHelper ueMobility;
+-    ueMobility.SetMobilityModel(
+-        "ns3::RandomWalk2dMobilityModel",
+-        "Bounds",
+-        RectangleValue(Rectangle(0, commonParams.simAreaLength, 0, commonParams.simAreaLength)),
+-        "Speed",
+-        StringValue("ns3::ConstantRandomVariable[Constant=0.83]"), // ~3 km/h
+-        "Mode",
+-        StringValue("Distance"),
+-        "Distance",
+-        DoubleValue(100.0) // change direction every 100 m
+-    );
+-    ueMobility.Install(ueNodes);
+-
+-    // Set initial random positions for UEs
+-    Ptr<UniformRandomVariable> randPos = CreateObject<UniformRandomVariable>();
+-    randPos->SetAttribute("Min", DoubleValue(0.0));
+-    randPos->SetAttribute("Max", DoubleValue(commonParams.simAreaLength));
+-    for (uint32_t i = 0; i < commonParams.ueNum; i++)
++    if (commonParams.mobilityMode == "RandomWalk")
+@@ -332,5 +417,55 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
+-        double xPos = randPos->GetValue();
+-        double yPos = randPos->GetValue();
+-        ueNodes.Get(i)->GetObject<MobilityModel>()->SetPosition(
+-            Vector(xPos, yPos, 1.5) // 1.5 m user height
+-        );
++        // Retain the pinned upstream RandomWalk model and randomized placement.
++        MobilityHelper ueMobility;
++        ueMobility.SetMobilityModel(
++            "ns3::RandomWalk2dMobilityModel",
++            "Bounds",
++            RectangleValue(Rectangle(0, commonParams.simAreaLength, 0, commonParams.simAreaLength)),
++            "Speed",
++            StringValue("ns3::ConstantRandomVariable[Constant=0.83]"), // ~3 km/h
++            "Mode",
++            StringValue("Distance"),
++            "Distance",
++            DoubleValue(100.0));
++        ueMobility.Install(ueNodes);
++
++        Ptr<UniformRandomVariable> randPos = CreateObject<UniformRandomVariable>();
++        randPos->SetAttribute("Min", DoubleValue(0.0));
++        randPos->SetAttribute("Max", DoubleValue(commonParams.simAreaLength));
++        for (uint32_t i = 0; i < ueNodes.GetN(); i++)
++        {
++            ueNodes.Get(i)->GetObject<MobilityModel>()->SetPosition(
++                Vector(randPos->GetValue(), randPos->GetValue(), 1.5));
++        }
++    }
++    else if (commonParams.mobilityMode == "Fixed" ||
++             commonParams.mobilityMode == "ControlledMoving")
++    {
++        NS_ABORT_MSG_IF(commonParams.ueNum != 6,
++                        commonParams.mobilityMode << " validation geometry requires exactly 6 UEs");
++        NS_ABORT_MSG_IF(commonParams.controlledMobilitySpeedMps <= 0.0,
++                        "controlledMobilitySpeedMps must be positive");
++        MobilityHelper ueMobility;
++        ueMobility.SetMobilityModel(commonParams.mobilityMode == "Fixed"
++                                        ? "ns3::ConstantPositionMobilityModel"
++                                        : "ns3::ConstantVelocityMobilityModel");
++        ueMobility.Install(ueNodes);
++        for (uint32_t i = 0; i < ueNodes.GetN(); i++)
++        {
++            // Same deterministic 2x3 grid for both paired mobility arms.
++            const double x = commonParams.simAreaLength * 0.5 +
++                             (static_cast<int>(i % 3) - 1) * 10.0;
++            const double y = commonParams.simAreaLength * 0.5 +
++                             (static_cast<int>(i / 3) == 0 ? -5.0 : 5.0);
++            Ptr<MobilityModel> model = ueNodes.Get(i)->GetObject<MobilityModel>();
++            model->SetPosition(Vector(x, y, 1.5));
++            if (commonParams.mobilityMode == "ControlledMoving")
++            {
++                ueNodes.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(
++                    Vector(commonParams.controlledMobilitySpeedMps, 0.0, 0.0));
++            }
++        }
++    }
++    else
++    {
++        NS_ABORT_MSG("Unknown mobilityMode '" << commonParams.mobilityMode
++                                                << "' (expected RandomWalk, Fixed, ControlledMoving)");
+@@ -353,0 +489,62 @@ SetupFronthaulMobility(const CommonRanParams& commonParams,
++namespace
++{
++void
++WriteFronthaulStateRow(NodeContainer xnbNodes,
++                       NodeContainer ueNodes,
++                       NetDeviceContainer ueDevices,
++                       Ptr<ChannelConditionModel> conditionModel,
++                       double tracePeriodSeconds,
++                       double simulationEndSeconds)
++{
++    const double time = Simulator::Now().GetSeconds();
++    const auto gnb = xnbNodes.Get(0)->GetObject<MobilityModel>();
++    const auto gnbPosition = gnb->GetPosition();
++    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
++    {
++        const auto ue = ueNodes.Get(i)->GetObject<MobilityModel>();
++        const auto position = ue->GetPosition();
++        const auto state = conditionModel->GetChannelCondition(gnb, ue);
++        const auto ueDevice = DynamicCast<NrUeNetDevice>(ueDevices.Get(i));
++        std::cout << std::setprecision(12) << "RADIO_MOBILITY_TRACE," << time << ',' << i << ','
++                  << ueNodes.Get(i)->GetId() << ',' << xnbNodes.Get(0)->GetId() << ','
++                  << (ueDevice ? ueDevice->GetRrc()->GetRnti() : 0) << ',' << gnbPosition.x << ','
++                  << gnbPosition.y << ',' << gnbPosition.z << ',' << position.x << ','
++                  << position.y << ',' << position.z << ','
++                  << (state->IsLos() ? "LOS" : (state->IsNlos() ? "NLOS" : "NLOSv")) << '\n';
++    }
++    if (time + tracePeriodSeconds <= simulationEndSeconds)
++    {
++        Simulator::Schedule(Seconds(tracePeriodSeconds),
++                            &WriteFronthaulStateRow,
++                            xnbNodes,
++                            ueNodes,
++                            ueDevices,
++                            conditionModel,
++                            tracePeriodSeconds,
++                            simulationEndSeconds);
++    }
++}
++} // namespace
++
++void
++ScheduleFronthaulStateTrace(const NodeContainer& xnbNodes,
++                            const NodeContainer& ueNodes,
++                            const NetDeviceContainer& ueDevices,
++                            Ptr<ChannelConditionModel> conditionModel,
++                            double tracePeriodSeconds,
++                            double simulationEndSeconds)
++{
++    NS_ABORT_MSG_IF(!conditionModel, "Cannot trace a null channel condition model");
++    NS_ABORT_MSG_IF(tracePeriodSeconds <= 0.0, "Trace period must be positive");
++    std::cout << "RADIO_MOBILITY_TRACE,time_s,ue_index,ue_node_id,gnb_node_id,rnti,"
++                 "gnb_x_m,gnb_y_m,gnb_z_m,ue_x_m,ue_y_m,ue_z_m,condition\n";
++    Simulator::Schedule(Seconds(0),
++                        &WriteFronthaulStateRow,
++                        xnbNodes,
++                        ueNodes,
++                        ueDevices,
++                        conditionModel,
++                        tracePeriodSeconds,
++                        simulationEndSeconds);
++}
++
+@@ -365,0 +563,150 @@ SetupIbOranApplications(const CommonRanParams& commonParams,
++    if (commonParams.trafficMode == "Udp")
++    {
++        NS_ABORT_MSG_IF(commonParams.ueTraffic.empty(), "Udp trafficMode requires common.ueTraffic");
++        for (const auto& flow : commonParams.ueTraffic)
++        {
++            NS_ABORT_MSG_IF(flow.ueIndex >= ueNodes.GetN(), "ueTraffic ueIndex is outside ueNum");
++            NS_ABORT_MSG_IF(flow.startTime < 0 || flow.stopTime <= flow.startTime ||
++                                flow.sinkStopTime < flow.startTime || flow.sinkStopTime > commonParams.simTime,
++                            "Invalid per-UE UDP start/stop/sinkStop times");
++            const uint32_t i = flow.ueIndex;
++            const uint16_t dlPort = static_cast<uint16_t>(2000 + i);
++            const uint16_t ulPort = static_cast<uint16_t>(4000 + i);
++            const auto ueDevice = DynamicCast<NrUeNetDevice>(ueDevs.Get(i));
++            const auto rnti = ueDevice ? ueDevice->GetRrc()->GetRnti() : 0;
++            if (flow.enableDl)
++            {
++                NS_ABORT_MSG_IF(flow.dlBitRate == 0 || flow.dlPacketSize == 0, "DL UDP rate and packet size must be positive");
++                PacketSinkHelper sink("ns3::UdpSocketFactory",
++                                      InetSocketAddress(ueIpIfaces.GetAddress(i), dlPort));
++                auto sinks = sink.Install(ueNodes.Get(i));
++                sinks.Start(Seconds(flow.startTime));
++                sinks.Stop(Seconds(flow.sinkStopTime));
++                auto sinkApp = DynamicCast<PacketSink>(sinks.Get(0));
++                if (commonParams.enablePacketTelemetry)
++                {
++                    sinkApp->SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
++                    sinkApp->TraceConnectWithoutContext("RxWithAddresses",
++                                                        MakeCallback(&CountUdpRxWithHeader));
++                    sinkApp->TraceConnectWithoutContext("RxWithSeqTsSize",
++                                                        MakeCallback(&TraceUdpPacketRx));
++                }
++                else
++                {
++                    sinkApp->TraceConnectWithoutContext("RxWithAddresses",
++                                                        MakeCallback(&CountUdpRx));
++                }
++                rxApps.Add(sinks);
++
++                OnOffHelper source("ns3::UdpSocketFactory",
++                                   InetSocketAddress(ueIpIfaces.GetAddress(i), dlPort));
++                source.SetAttribute("DataRate", DataRateValue(DataRate(flow.dlBitRate)));
++                source.SetAttribute(
++                    "PacketSize",
++                    UintegerValue(flow.dlPacketSize +
++                                  (commonParams.enablePacketTelemetry
++                                       ? SeqTsSizeHeader().GetSerializedSize()
++                                       : 0)));
++                source.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
++                source.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
++                source.SetAttribute("EnableSeqTsSizeHeader",
++                                     BooleanValue(commonParams.enablePacketTelemetry));
++                auto sources = source.Install(remoteHost);
++                sources.Start(Seconds(flow.startTime));
++                sources.Stop(Seconds(flow.stopTime));
++                auto sourceApp = DynamicCast<OnOffApplication>(sources.Get(0));
++                if (commonParams.enablePacketTelemetry)
++                {
++                    sourceApp->TraceConnectWithoutContext("TxWithAddresses",
++                                                          MakeCallback(&CountUdpTxWithHeader));
++                    sourceApp->TraceConnectWithoutContext("TxWithSeqTsSize",
++                                                          MakeCallback(&TraceUdpPacketTx));
++                }
++                else
++                {
++                    sourceApp->TraceConnectWithoutContext("TxWithAddresses",
++                                                          MakeCallback(&CountUdpTx));
++                }
++                txApps.Add(sources);
++                std::cout << "UE_TRAFFIC_CONFIG,DL," << i << ',' << ueIpIfaces.GetAddress(i) << ','
++                          << rnti << ',' << remoteHostAddr << ',' << dlPort << ',' << flow.dlBitRate
++                          << ',' << flow.dlPacketSize << ',' << flow.startTime << ',' << flow.stopTime
++                          << ',' << flow.sinkStopTime << '\n';
++                Simulator::Schedule(Seconds(commonParams.simTime - 1e-6),
++                                    &PrintUdpFlowResult,
++                                    i,
++                                    std::string("DL"),
++                                    ueIpIfaces.GetAddress(i),
++                                    remoteHostAddr,
++                                    dlPort,
++                                    ueDevice);
++            }
++            if (flow.enableUl)
++            {
++                NS_ABORT_MSG_IF(flow.ulBitRate == 0 || flow.ulPacketSize == 0, "UL UDP rate and packet size must be positive");
++                PacketSinkHelper sink("ns3::UdpSocketFactory", InetSocketAddress(remoteHostAddr, ulPort));
++                auto sinks = sink.Install(remoteHost);
++                sinks.Start(Seconds(flow.startTime));
++                sinks.Stop(Seconds(flow.sinkStopTime));
++                auto sinkApp = DynamicCast<PacketSink>(sinks.Get(0));
++                if (commonParams.enablePacketTelemetry)
++                {
++                    sinkApp->SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
++                    sinkApp->TraceConnectWithoutContext("RxWithAddresses",
++                                                        MakeCallback(&CountUdpRxWithHeader));
++                    sinkApp->TraceConnectWithoutContext("RxWithSeqTsSize",
++                                                        MakeCallback(&TraceUdpPacketRx));
++                }
++                else
++                {
++                    sinkApp->TraceConnectWithoutContext("RxWithAddresses",
++                                                        MakeCallback(&CountUdpRx));
++                }
++                rxApps.Add(sinks);
++
++                OnOffHelper source("ns3::UdpSocketFactory", InetSocketAddress(remoteHostAddr, ulPort));
++                source.SetAttribute("DataRate", DataRateValue(DataRate(flow.ulBitRate)));
++                source.SetAttribute(
++                    "PacketSize",
++                    UintegerValue(flow.ulPacketSize +
++                                  (commonParams.enablePacketTelemetry
++                                       ? SeqTsSizeHeader().GetSerializedSize()
++                                       : 0)));
++                source.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
++                source.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
++                source.SetAttribute("EnableSeqTsSizeHeader",
++                                     BooleanValue(commonParams.enablePacketTelemetry));
++                auto sources = source.Install(ueNodes.Get(i));
++                sources.Start(Seconds(flow.startTime));
++                sources.Stop(Seconds(flow.stopTime));
++                auto sourceApp = DynamicCast<OnOffApplication>(sources.Get(0));
++                if (commonParams.enablePacketTelemetry)
++                {
++                    sourceApp->TraceConnectWithoutContext("TxWithAddresses",
++                                                          MakeCallback(&CountUdpTxWithHeader));
++                    sourceApp->TraceConnectWithoutContext("TxWithSeqTsSize",
++                                                          MakeCallback(&TraceUdpPacketTx));
++                }
++                else
++                {
++                    sourceApp->TraceConnectWithoutContext("TxWithAddresses",
++                                                          MakeCallback(&CountUdpTx));
++                }
++                txApps.Add(sources);
++                std::cout << "UE_TRAFFIC_CONFIG,UL," << i << ',' << ueIpIfaces.GetAddress(i) << ','
++                          << rnti << ',' << remoteHostAddr << ',' << ulPort << ',' << flow.ulBitRate
++                          << ',' << flow.ulPacketSize << ',' << flow.startTime << ',' << flow.stopTime
++                          << ',' << flow.sinkStopTime << '\n';
++                Simulator::Schedule(Seconds(commonParams.simTime - 1e-6),
++                                    &PrintUdpFlowResult,
++                                    i,
++                                    std::string("UL"),
++                                    ueIpIfaces.GetAddress(i),
++                                    remoteHostAddr,
++                                    ulPort,
++                                    ueDevice);
++            }
++        }
++        return;
++    }
++    NS_ABORT_MSG_IF(commonParams.trafficMode != "Dataset", "trafficMode must be Dataset or Udp");
+diff --git a/model/iboran_ran_environment/iboran-ran-common.h b/model/iboran_ran_environment/iboran-ran-common.h
+index 20ba080..67a9232 100644
+--- a/model/iboran_ran_environment/iboran-ran-common.h
++++ b/model/iboran_ran_environment/iboran-ran-common.h
+@@ -19,0 +20 @@
++#include "ns3/channel-condition-model.h"
+@@ -76,0 +78,7 @@ void SetupFronthaulMobility(const CommonRanParams& commonParams,
++void ScheduleFronthaulStateTrace(const NodeContainer& xnbNodes,
++                                 const NodeContainer& ueNodes,
++                                 const NetDeviceContainer& ueDevices,
++                                 Ptr<ChannelConditionModel> conditionModel,
++                                 double tracePeriodSeconds,
++                                 double simulationEndSeconds);
++
+diff --git a/model/iboran_ran_environment/iboran-ran-params.cc b/model/iboran_ran_environment/iboran-ran-params.cc
+index 6630def..743430d 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.cc
++++ b/model/iboran_ran_environment/iboran-ran-params.cc
+@@ -104,0 +105,6 @@ SimParams::SimParams()
++    common.mobilityMode = "RandomWalk";
++    common.controlledMobilitySpeedMps = 0.83;
++    common.enableRadioMobilityTrace = false;
++    common.radioMobilityTracePeriodSeconds = 1.0;
++    common.trafficMode = "Dataset";
++    common.enablePacketTelemetry = false;
+@@ -163,0 +170 @@ SimParams::SimParams()
++    nr.channelCondition = "Default";
+@@ -225,0 +233,43 @@ SimParams::LoadFromYaml(const std::string& filepath)
++        if (c["mobilityMode"])
++        {
++            common.mobilityMode = c["mobilityMode"].as<std::string>();
++        }
++        if (c["controlledMobilitySpeedMps"])
++        {
++            common.controlledMobilitySpeedMps = c["controlledMobilitySpeedMps"].as<double>();
++        }
++        if (c["enableRadioMobilityTrace"])
++        {
++            common.enableRadioMobilityTrace = c["enableRadioMobilityTrace"].as<bool>();
++        }
++        if (c["radioMobilityTracePeriodSeconds"])
++        {
++            common.radioMobilityTracePeriodSeconds = c["radioMobilityTracePeriodSeconds"].as<double>();
++        }
++        if (c["trafficMode"])
++        {
++            common.trafficMode = c["trafficMode"].as<std::string>();
++        }
++        if (c["enablePacketTelemetry"])
++        {
++            common.enablePacketTelemetry = c["enablePacketTelemetry"].as<bool>();
++        }
++        if (auto flows = c["ueTraffic"])
++        {
++            common.ueTraffic.clear();
++            for (const auto& item : flows)
++            {
++                UeTrafficConfig flow;
++                flow.ueIndex = item["ueIndex"].as<uint32_t>();
++                flow.enableUl = item["enableUl"] ? item["enableUl"].as<bool>() : false;
++                flow.enableDl = item["enableDl"] ? item["enableDl"].as<bool>() : false;
++                flow.ulBitRate = item["ulBitRate"] ? item["ulBitRate"].as<uint32_t>() : 0;
++                flow.dlBitRate = item["dlBitRate"] ? item["dlBitRate"].as<uint32_t>() : 0;
++                flow.ulPacketSize = item["ulPacketSize"] ? item["ulPacketSize"].as<uint32_t>() : 512;
++                flow.dlPacketSize = item["dlPacketSize"] ? item["dlPacketSize"].as<uint32_t>() : 512;
++                flow.startTime = item["startTime"] ? item["startTime"].as<double>() : 1.0;
++                flow.stopTime = item["stopTime"] ? item["stopTime"].as<double>() : 8.0;
++                flow.sinkStopTime = item["sinkStopTime"] ? item["sinkStopTime"].as<double>() : flow.stopTime + 1.0;
++                common.ueTraffic.push_back(flow);
++            }
++        }
+@@ -358,0 +409,4 @@ SimParams::LoadFromYaml(const std::string& filepath)
++        if (n["channelCondition"])
++        {
++            nr.channelCondition = n["channelCondition"].as<std::string>();
++        }
+diff --git a/model/iboran_ran_environment/iboran-ran-params.h b/model/iboran_ran_environment/iboran-ran-params.h
+index f9859c3..0eeea64 100644
+--- a/model/iboran_ran_environment/iboran-ran-params.h
++++ b/model/iboran_ran_environment/iboran-ran-params.h
+@@ -22,0 +23 @@
++#include <vector>
+@@ -27,0 +29,14 @@ namespace ns3
++struct UeTrafficConfig
++{
++    uint32_t ueIndex{0}; // zero-based UE index
++    bool enableUl{false};
++    bool enableDl{false};
++    uint32_t ulBitRate{0};
++    uint32_t dlBitRate{0};
++    uint32_t ulPacketSize{512};
++    uint32_t dlPacketSize{512};
++    double startTime{1.0};
++    double stopTime{8.0};
++    double sinkStopTime{9.0};
++};
++
+@@ -67,0 +83,7 @@ struct CommonRanParams
++    std::string mobilityMode; // RandomWalk (upstream), Fixed, or ControlledMoving
++    double controlledMobilitySpeedMps; // speed for ControlledMoving [m/s]
++    bool enableRadioMobilityTrace; // write per-UE position and actual channel-condition rows
++    double radioMobilityTracePeriodSeconds; // trace period [s]
++    std::string trafficMode; // Dataset (upstream) or Udp (synthetic UDP)
++    std::vector<UeTrafficConfig> ueTraffic;
++    bool enablePacketTelemetry; // emit per-packet SeqTsSizeHeader events for UDP flows
+@@ -93,0 +116 @@ struct NrParams
++    std::string channelCondition;  // whole-cell condition: Default, LOS, or NLOS
+diff --git a/model/utils/config_store.py b/model/utils/config_store.py
+index a2b3d0b..9f9a0bd 100644
+--- a/model/utils/config_store.py
++++ b/model/utils/config_store.py
+@@ -17 +17 @@ import yaml
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, model_validator
+@@ -26,0 +27,25 @@ RUN_CONFIG_PATH = (
++class UeTrafficConfig(BaseModel):
++    ueIndex: int = Field(ge=0, le=5)
++    enableUl: bool = False
++    enableDl: bool = False
++    ulBitRate: int = Field(default=0, ge=0)
++    dlBitRate: int = Field(default=0, ge=0)
++    ulPacketSize: int = Field(default=512, ge=1)
++    dlPacketSize: int = Field(default=512, ge=1)
++    startTime: float = Field(default=1.0, ge=0.0)
++    stopTime: float = Field(default=8.0, gt=0.0)
++    sinkStopTime: float = Field(default=9.0, gt=0.0)
++
++    @model_validator(mode="after")
++    def validate_times_and_rates(self):
++        if self.stopTime <= self.startTime or self.sinkStopTime < self.startTime:
++            raise ValueError("traffic stopTime must follow startTime and sinkStopTime must not precede it")
++        if self.enableUl and self.ulBitRate <= 0:
++            raise ValueError("enabled UL flow requires ulBitRate > 0")
++        if self.enableDl and self.dlBitRate <= 0:
++            raise ValueError("enabled DL flow requires dlBitRate > 0")
++        if not self.enableUl and not self.enableDl:
++            raise ValueError("each ueTraffic row must enable UL or DL")
++        return self
++
++
+@@ -61,0 +87,7 @@ class CommonRanParams(BaseModel):
++    mobilityMode: Literal["RandomWalk", "Fixed", "ControlledMoving"] = "RandomWalk"
++    controlledMobilitySpeedMps: float = Field(0.83, gt=0.0)
++    enableRadioMobilityTrace: bool = False
++    radioMobilityTracePeriodSeconds: float = Field(1.0, gt=0.0)
++    trafficMode: Literal["Dataset", "Udp"] = "Dataset"
++    ueTraffic: list[UeTrafficConfig] = Field(default_factory=list)
++    enablePacketTelemetry: bool = False
+@@ -73,0 +106 @@ class NrParams(BaseModel):
++    channelCondition: Literal["Default", "LOS", "NLOS"] = "Default"
