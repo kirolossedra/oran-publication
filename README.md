@@ -1,45 +1,43 @@
-# O-RAN integrated six-UE research campaign
+# O-RAN research — G1 scheduling and high-throughput
 
-This repository snapshot contains the current integrated campaign package in [`campaigns/20261111-g1-integrated-v2/`](campaigns/20261111-g1-integrated-v2/). The folder name identifies the campaign and separates it from earlier run artifacts.
+This repository is the **single tracked source of truth** for the O-RAN study.
+The WSL workspace must have the same relative paths for all tracked files.
+Only third-party simulator checkouts, builds, environments, secrets, raw runs
+and generated reports are expected to exist locally without GitHub copies.
 
-The study compares all-LOS with selective UE6 NLOS, stationary with controlled linear mobility, four UL/DL load arms, and RoundRobin with TopKCqi ib-ORAN dApp policies across five seeds. The matrix has 160 planned cells.
+## Repository index
 
-The campaign is still **in progress**. At this package snapshot, 92 cells had successful exits, zero had recorded nonzero exits, two incomplete attempts were preserved, and 68 cells had not completed. No campaign-wide results are claimed here. The earlier v1 packet PDR/latency outputs were invalidated because `PacketTag` did not provide unique packet identity; the v2 package uses a serialized application header.
+| Directory | What is happening there |
+|---|---|
+| [Research](docs/research/README.md) | Scientific question, experiment scope, comparison constraints |
+| [Configurations](configs/README.md) | One 160-cell experimental matrix and older focused scenarios |
+| [Experiment scripts](experiment-scripts/README.md) | **Live execution:** sanity, campaign, analysis, throughput and starvation |
+| [Simulator](simulator/README.md) | Pinned upstream dependencies; tracked ib-ORAN modifications |
+| [Tests](tests/README.md) | Python regression tests for scheduler and metrics |
+| [Methodology](docs/methodology/README.md) | Definition and limitations of packet, CQI and MAC measurements |
+| [Historical records](docs/history/README.md) | Completed missions, decisions and audits, **not live code** |
+| [Results](results/README.md) | Reviewed calibration; other raw/generated results stay local |
+| [Archive](archive/README.md) | Retired patches and obsolete deployment code |
 
-The exact runner, analysis code, configuration, full editable source copies for every modified ib-ORAN file, status limitations, and reproduction commands are in the [campaign package README](campaigns/20261111-g1-integrated-v2/README.md). The [upstream source map](campaigns/20261111-g1-integrated-v2/UPSTREAM-SOURCES.md) links the complete ns-3, NR, ns3-ai, and ib-ORAN source at each pinned commit. Build products and raw simulation traces remain local.
+## What to run next
 
-## Mission and engineering records
+**The Git checkout in WSL was reported broken (empty `.git`).**
+Before pulling or building, follow the
+[safe workspace reconciliation guide](docs/workspace-reconciliation.md).
+Do not blindly pull into that directory or overwrite local experiment data.
 
-- [Mission status and dependency ledger](docs/MISSIONS.md)
-- [RA-ENG-004 packet/grant instrumentation report](docs/missions/RA-ENG-004-instrumentation.md)
-- [RA-ENG-005 load calibration report](docs/missions/RA-ENG-005-load-calibration.md)
-- [RA-ENG-006 stock scheduling report](docs/missions/RA-ENG-006-stock-scheduling.md)
-- [RA-ENG-006 stock policy source controls and observed probe](docs/research/g1-stock-policy-controls.md)
-- [RA-ENG-007 paired campaign approval and readiness report](docs/missions/RA-ENG-007-paired-campaign.md)
-- [RA-ENG-005 load-calibration method and results](docs/methodology/g1-load-calibration.md)
-- [RA-ENG-005 per-UE summary and DL/UL figures](results/RA-ENG-005/)
-- [Packet/grant metric schema](docs/methodology/g1-packet-grant-metrics.md)
-- [Documentation audit](docs/DOCUMENTATION-AUDIT.md)
-- [Campaign v2 validation package](campaigns/20261111-g1-integrated-v2/README.md)
-
-RA-ENG-004's bounded instrumentation validation is an engineering check, separate from the integrated v2 campaign. The campaign's own runner, full source overrides, and analyzer are the source for campaign results. The short RA-ENG-004 checks do not replace or augment the campaign dataset. No campaign-wide result is claimed until remaining cells, analysis, sample-count review, and documentation are complete.
-
-**Scheduler audit update:** The [v2 campaign package](campaigns/20261111-g1-integrated-v2/README.md#independent-scheduler-and-analysis-corrections-2026-11-11) now includes fixes for RoundRobin's 10.24-second service-history defect, TopKCqi equal-score tie bias, CQI input-state observability, campaign provenance, and analysis accounting. These fixes change policy behavior; existing run artifacts are retained but must not be pooled with corrected runs. The GitHub source copies must be applied and rebuilt in WSL before new runs.
-
-## Sanity-first execution
-
-Before any further full 160-run execution, use the
-[bounded 20-cell high-throughput sanity gate](campaigns/20261111-g1-integrated-v2/README.md#one-command-high-throughput-sanity-gate-before-the-full-campaign).
-On the provisioned WSL machine, after reviewing working-source differences and
-ensuring no campaign is active:
+After parity is restored and the installed simulator is idle, run:
 
 ```bash
-bash campaigns/20261111-g1-integrated-v2/scripts/sanity_g1.sh --apply-overrides
+bash experiment-scripts/sanity.sh --apply-overrides
 ```
 
-This builds the NR target, runs regressions, and reports actual UL/DL offered
-load, application TX throughput, received goodput, MAC throughput, packet loss
-and latency percentiles, CQI/MCS, queues, applied grants, fairness and starvation.
-It uses `tqdm` progress and isolated append-only raw artifacts. The tool is
-committed to GitHub; its simulator results are **not** verified until executed
-in the provisioned WSL environment.
+This command runs scheduler/unit tests, builds `ns3iboran_nr`,
+then a **20-cell high-throughput sanity subset** with `tqdm`,
+measuring each UE's DL/UL offered load, actual TX Mbps, received goodput
+Mbps, MAC Mbps, PDR, P50/P95/P99, CQI/MCS, queues, grants and starvation.
+It **does not** start the 160-cell research campaign.
+
+[Agent instructions](AGENTS.md) ·
+[Research protocol](docs/research/experiment-overview.md) ·
+[Codex sanity issue #25](https://github.com/kirolossedra/oran-publication/issues/25)

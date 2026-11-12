@@ -1,18 +1,13 @@
-# Documentation index
+# Research documentation — navigation index
 
-- [Current integrated G1 v2 campaign package](../campaigns/20261111-g1-integrated-v2/README.md)
-- [Pinned upstream source map and editable overrides](../campaigns/20261111-g1-integrated-v2/UPSTREAM-SOURCES.md)
-- [Campaign v2 instrumentation limitation](../campaigns/20261111-g1-integrated-v2/docs/INSTRUMENTATION-LIMITATION.md)
-- [Mission status ledger](MISSIONS.md)
-- [RA-ENG-004 packet/grant instrumentation report](missions/RA-ENG-004-instrumentation.md)
-- [RA-ENG-005 six-UE load calibration report](missions/RA-ENG-005-load-calibration.md)
-- [RA-ENG-006 stock scheduling report](missions/RA-ENG-006-stock-scheduling.md)
-- [RA-ENG-006 stock policy controls](research/g1-stock-policy-controls.md)
-- [RA-ENG-007 paired campaign approval and readiness report](missions/RA-ENG-007-paired-campaign.md)
-- [RA-ENG-005 load-calibration method and results](methodology/g1-load-calibration.md)
-- [RA-ENG-005 per-UE table and direction-specific figures](../results/RA-ENG-005/)
-- [Packet/grant metric schema](methodology/g1-packet-grant-metrics.md)
-- [Documentation audit](DOCUMENTATION-AUDIT.md)
-- [Repository governance](../AGENTS.md) · [mission template](../templates/MISSION-TEMPLATE.md)
+| Folder | Contents | Where to start |
+|---|---|---|
+| [research](research/README.md) | Research question, G1 design, scheduler controls | [Study overview](research/experiment-overview.md) |
+| [methodology](methodology/README.md) | Packet identity, throughput/delay accounting, calibration | [Measurement index](methodology/README.md) |
+| [history](history/README.md) | Mission ledger, dated reports and verification history | Reference only |
+| [templates](templates/README.md) | Optional mission-report template | Not a blocker to routine debugging |
 
-The campaign package is the current home for the integrated 160-cell study. Earlier source feasibility, radio/mobility, and traffic-control records remain in repository history at commit `fcb460f8ec3098372605635a5c40b823faff1d2d`; the RA-ENG-004 record below documents the later bounded instrumentation validation separately.
+[WSL workspace recovery and tracked-file parity](workspace-reconciliation.md)
+is currently mandatory **before any pull/build/sanity**.
+Executable scripts have their own [index](../experiment-scripts/README.md).
+Configurations have their own [index](../configs/README.md).

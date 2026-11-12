@@ -1,0 +1,16 @@
+# Mission status ledger
+
+| Mission | Issue | Status | Evidence |
+|---|---:|---|---|
+| RA-ENG-001–003 | #14–#16 | Completed and closed | Prior reports and evidence are retained in Git history through `fcb460f8ec3098372605635a5c40b823faff1d2d`. |
+| RA-ENG-004 | #17 | Closed complete | [Instrumentation report](missions/instrumentation.md), [metric schema](../methodology/packet-grant-metrics.md), raw evidence under ignored `simulator/logs/RA-ENG-004-20261112/`; published at `b75c5784d0ab928080037f6afa22ab97af359e10` and remote-verified. |
+| RA-ENG-005 | #18 | Engineering calibration completed and closed; researcher rate choice pending | [Mission report](missions/load-calibration.md), [method/results](../methodology/load-calibration.md), [per-UE summary and figures](../../results/calibration/); seed-11 raw evidence under ignored `simulator/logs/RA-ENG-005-20261112/`. Published at `1fe55963eff05a665bac936864caa3cf6da0115d`, remote-verified. Candidate rates returned; no final factors selected. |
+| RA-ENG-006 | #19 | Engineering probe complete; researcher policy choice pending | [Mission report](missions/scheduler-probe.md) and [source/control note](../research/scheduler-policy-controls.md); seed-11 RoundRobin/TopKCqi probe changed applied grants with all 12 UE/direction flows reconciled. |
+| RA-ENG-007 | #20 | Protocol approved; 8/160 pilot cells complete | [Campaign report](missions/campaign-readiness.md) records the approved matrix, verified source/build, complete six-UE pilot joins and channel audits; 152 cells remain. |
+| RA-ENG-008 | #21 | Awaiting campaign outputs | Analyze only validated, traceable campaign runs. |
+| RA-ENG-009 | #22 | Researcher review gate | Claims and publication authorization require researcher review. |
+| Integrated G1 v2 campaign | #24 | In progress; not formalized or completed | [Versioned package](../research/experiment-overview.md): latest package snapshot records 92/160 successful cells; 68 remain. The RA-ENG-006 probe is separate from campaign cells. |
+
+Use the [mission template](../templates/mission-report.md) and repository [governance instructions](../../AGENTS.md) for each new mission. Stale issues #1–#10 remain excluded per the recorded roadmap.
+
+> **Historical status only:** this ledger predates the corrected scheduler and repository restructuring. For active instructions read [the scripts index](../../experiment-scripts/README.md) and [sanity handoff #25](https://github.com/kirolossedra/oran-publication/issues/25).

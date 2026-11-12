@@ -1,7 +1,17 @@
-# Keep simulator checkouts and builds outside tracked research material
-/simulator/
-/ns-3*/
-/environment/
+# Local pinned ns-3, NR, ns3-ai and ib-ORAN checkouts/builds are untracked.
+# Tracked research code lives under simulator/overrides/iboran/model/.
+# This is intentional: ns-3 and ib-ORAN are separate upstream Git projects.
+/simulator/*
+!/simulator/README.md
+!/simulator/DEPENDENCIES.md
+!/simulator/overrides/
+
+# Preserve only reviewed small calibration outputs in Git.
+/results/*
+!/results/README.md
+!/results/calibration/
+
+# Never commit virtual environments, generated run data, credentials or secrets.
 /build/
 **/build/
 .venv/
@@ -12,14 +22,6 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .cache/
-
-# Generated outputs (commit only explicitly reviewed small results)
-/results/raw/*
-!/results/raw/README.md
-/results/figures/*
-!/results/figures/README.md
-/logs/*
-!/logs/README.md
 *.pcap*
 *.tr
 *.trace
@@ -35,8 +37,6 @@ __pycache__/
 *.so*
 *.out
 *.core
-
-# Local credentials and editor/temporary files
 .env
 .env.*
 !.env.example
