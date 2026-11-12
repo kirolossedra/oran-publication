@@ -20,6 +20,7 @@ The stock Orange ib-ORAN xApp is switched between **Bypass** (unconstrained uppe
 - simulator/overrides/iboran/model/utils/config_store.py — Python config schema
 - simulator/overrides/iboran/SHA256SUMS — source override manifest
 - configs/los-nlos-transition.json — separate, researcher-gated run specification
+- experiment-scripts/prepare_los_nlos_transition.py — opt-in pinned-source synchronization/backups/build, no legacy run
 - experiment-scripts/run_los_nlos_transition.py — matched trials and log gate
 - experiment-scripts/analyze_los_nlos_transition.py — phase/UE/direction packet/CQI analysis
 - tests/test_los_nlos_transition.py — schema and transition diagnostics
@@ -32,9 +33,8 @@ The JSON intentionally has null values for transition start/end, bandwidth, four
 python experiment-scripts/run_los_nlos_transition.py --plan-only
 # After filling PI-approved values in configs/los-nlos-transition.json, and provisioning pinned ns-3, ib-ORAN, venv, and sources:
 python -m unittest discover -s tests -v
-bash experiment-scripts/sanity.sh --apply-overrides
-# CAUTION: sanity.sh itself still runs the OLD 20-case G1 experiment. Do not confuse its results with transition validation.
-cd simulator/ns-3.48 && ./ns3 build ns3iboran_nr -j 2 && cd ../..
+python experiment-scripts/prepare_los_nlos_transition.py --apply-overrides --build
+# Uses source checks, backups, tests and pinned build; does NOT run old G1.
 python experiment-scripts/run_los_nlos_transition.py --limit 2
 python experiment-scripts/run_los_nlos_transition.py
 python experiment-scripts/analyze_los_nlos_transition.py --campaign-root simulator/runs/los-nlos-transition-engineering-v1 --output results/los-nlos-transition-engineering-v1/phase-metrics.csv
@@ -43,7 +43,7 @@ python experiment-scripts/analyze_los_nlos_transition.py --campaign-root simulat
 ## Scientific and reproducibility cautions
 
 - The all-LOS arm and transition arm must have matched seed, offered rates, controller, geometry, and window boundaries. Per-phase results are cohort-labeled by packet **TX** time, so late RX remains attributed to the original TX phase.
-- Packet not received by sink stop is not necessarily physical-layer loss. Received-only P99 must always be reported with PDR and received sample counts. The analyzer does not currently calculate grants per phase; legacy grant traces are still available for extended validation.
+- Packet not received by sink stop is not necessarily physical-layer loss. Received-only P99 must always be reported with PDR and received sample counts. The analyzer also bins **applied grants**, PRBs, transport bytes and MCS per phase, flagging unmapped RNTIs; the controller's intent is still not itself a PHY grant.
 - A change in wrapper CHANNEL_STATE labels alone **does not verify the underlying PHY response**. Verify measured per-UE CQI, MCS, delivered goodput, applied grants and per-phase delays before scientific claims. Verify 3GPP condition-cache handling and control-loop timescale in the pinned model.
 - The 500 Mbps ambition is not assumed feasible or imposed on all UEs. Real capacity depends on bandwidth, antennas, TDD, channel, MCS and control overhead. Existing 6 Mbps G1 configuration is left untouched as historical evidence.
 - Only one seed is provided as an **engineering diagnostic**; this is not a formal published protocol. The PI must authorize sample count, thresholds, final scheduling policy and research hypothesis separately.
