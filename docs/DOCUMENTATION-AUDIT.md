@@ -37,4 +37,4 @@ These are one-seed engineering diagnostics, not publication inference. No final 
 - Local link checks across updated Markdown files pass; git diff --check passes.
 - Credentials/secrets, staged sizes, and local upstream-source tree are audited before the local commit.
 - No push is made: Issue #25 explicitly forbids pushing unreviewed local changes. Verified results were posted in [issue comment 6835644818](https://github.com/kirolossedra/oran-publication/issues/25#issuecomment-6835644818); PI review is still required for any full campaign.
-- Remote main was observed at 7ecc4342728a4a4ec5a3cbf9323bbb133b3cc8c7 during final audit; this local checkout is based on 7742cb78e741b4d9e6efa3b6d49c71e746df5433. No fetch/rebase/push was performed during finalization; local changes remain unpushed.
+- Remote main was observed at 7ecc4342728a4a4ec5a3cbf9323bbb133b3cc8c7 during final audit; this local checkout is based on 7742cb78e741b4d9e6efa3b6d49c71e746df5433. No fetch/rebase/push was performed during finalization. The audited changes were committed locally as `f5514df` (parent `7742cb78e741b4d9e6efa3b6d49c71e746df5433`) and remain unpushed.

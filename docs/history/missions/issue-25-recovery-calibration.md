@@ -118,3 +118,10 @@ The calibration and sanity each use one run seed (11). Packets are measurements 
 - [x] Issue #25 updated with measured results
 - [x] No 160-cell campaign run
 - [x] No push performed because the issue forbids pushing unreviewed local changes
+
+## Version control and delivery
+
+- **Observed local commit:** `f5514df` (`Complete issue 25 recovery calibration and sanity`), parent `7742cb78e741b4d9e6efa3b6d49c71e746df5433`.
+- **Observed remote:** `origin/main` was `7ecc4342728a4a4ec5a3cbf9323bbb133b3cc8c7` during final audit. The clone was not reconciled because issue #25 prohibits pushing unreviewed changes; no push was performed.
+- **Observed audit:** 23 staged paths, 150,501 bytes, largest file 38,535 bytes; no credential-pattern hits, generated run data, simulator build tree, or venv staged. `git diff --cached --check` passed.
+- Verified result comment: https://github.com/kirolossedra/oran-publication/issues/25#issuecomment-6835644818.
