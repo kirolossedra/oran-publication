@@ -1,5 +1,5 @@
 {
-  "campaign_id": "20261111-g1-integrated-v2",
+  "campaign_id": "g1-high-throughput-reliability-v1",
   "channels": [
     "all-los",
     "ue6-nlos"
@@ -119,6 +119,7 @@
     "reliability_target_scope": "candidate goal only; require confidence interval and sufficient packet counts, do not assert ultra-reliable qualification",
     "application_latency_deadline_ms": null,
     "application_latency_deadline_scope": "To be specified by researcher; application latency includes modeled backhaul, not only radio latency",
-    "approval_gate": "No full 160-cell campaign until pilot calibrates rates and reliability"
+    "approval_gate": "No full 160-cell campaign until pilot calibrates rates and reliability",
+    "study_status": "provisional engineering high-rate stress design; researcher has not approved exact throughput or application deadline"
   }
 }
