@@ -128,7 +128,7 @@ Dependencies observed: ns-3.48/NR v5.1, ns3-ai, Orange ib-ORAN pins above; Pytho
 
 ## Documentation audit, publication, and checklist
 
-The template report shell preceded RA-ENG-005 source inspection and runs. Root README, `docs/README.md`, `docs/MISSIONS.md`, methodology, and `docs/DOCUMENTATION-AUDIT.md` are updated. Raw evidence is checksum-verified. Before publication, audit staged paths, sizes, credentials, generated artifacts, source trees and virtual environments; verify Markdown links/whitespace; check `main` remote is a safe fast-forward; push and verify the resulting remote SHA. Commit and remote SHA will be recorded here after delivery.
+The template report shell preceded RA-ENG-005 source inspection and runs. Root README, `docs/README.md`, `docs/MISSIONS.md`, methodology, and `docs/DOCUMENTATION-AUDIT.md` are updated. Raw evidence checksum verification passed (76/76 files). The staged audit covered 19 paths (173,170 bytes; largest 54,673 bytes), with no credential-pattern hits, simulator/source/build/virtualenv paths, or files over 100 KB. `git diff --cached --check` passed. The commit was safely rebased on the researcher's newer `main` and pushed; remote `main` matched the verified local SHA `1fe55963eff05a665bac936864caa3cf6da0115d`. The worktree was clean at verification.
 
 - [x] Mission report created before source inspection
 - [x] Existing architecture/source hooks and risks documented
@@ -140,12 +140,12 @@ The template report shell preceded RA-ENG-005 source inspection and runs. Root R
 - [x] Candidate matrix returned for researcher decision; no formal factors selected
 - [x] Concise CSV and direction-specific diagnostic figures generated
 - [x] Reproduction commands, failure history, source/config hashes and raw evidence documented
-- [ ] Staged-path/security/size audit and safe push completed
-- [ ] Remote SHA recorded and issue #18 updated
+- [x] Staged-path/security/size audit and safe push completed
+- [x] Remote SHA recorded and issue #18 updated
 
 ## Unresolved questions and next steps
 
 1. Researcher selects or revises candidate rates and specifies the desired multi-seed confirmation count.
 2. Improve UL grant RNTI lifecycle mapping before interpreting all six per-UE UL grant shares.
 3. Preserve candidate cells separately from the integrated v2 campaign; do not retrofit these one-seed observations into its results.
-4. Proceed to stock policy verification only under the overall KIRO execution scope; final formal study issue #20 remains gated on researcher protocol approval.
+4. Continue with the next executable stock-policy mission under the overall KIRO execution scope; final formal study issue #20 remains gated on researcher protocol approval.
