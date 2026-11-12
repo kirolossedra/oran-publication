@@ -96,3 +96,7 @@ Recommend **RoundRobin versus TopKCqi under fixed xApp Bypass** for researcher c
 - [x] Root README, docs README, mission index, and audit updated
 - [x] Staged-path/security/size review and safe main push recorded after commit
 - [ ] Researcher approval of formal policy pair and protocol (required for RA-ENG-007)
+
+## Version-control closeout
+
+The curated delivery was committed on `main` as `2e695b2da9389b97781633b543447979f1a029fb` (`Complete stock scheduler control probe`). It was pushed as a fast-forward; `git ls-remote origin refs/heads/main` returned the same SHA. The staged audit covered 11 paths and 69,938 bytes (largest 15,433 bytes), found no credential-pattern matches, raw outputs, simulator source/build trees, or virtual environment paths, and `git diff --cached --check` passed. Raw runs remain ignored and separately SHA-256 indexed (78 files).
