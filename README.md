@@ -15,6 +15,7 @@ The exact runner, analysis code, configuration, full editable source copies for 
 - [RA-ENG-005 load calibration report](docs/missions/RA-ENG-005-load-calibration.md)
 - [RA-ENG-006 stock scheduling report](docs/missions/RA-ENG-006-stock-scheduling.md)
 - [RA-ENG-006 stock policy source controls and observed probe](docs/research/g1-stock-policy-controls.md)
+- [RA-ENG-007 paired campaign approval and readiness report](docs/missions/RA-ENG-007-paired-campaign.md)
 - [RA-ENG-005 load-calibration method and results](docs/methodology/g1-load-calibration.md)
 - [RA-ENG-005 per-UE summary and DL/UL figures](results/RA-ENG-005/)
 - [Packet/grant metric schema](docs/methodology/g1-packet-grant-metrics.md)
