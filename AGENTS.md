@@ -1,3 +1,5 @@
+> **GOVERNING DIRECTION (2026-11-12):** [PI research-direction issue #26](https://github.com/kirolossedra/oran-publication/issues/26) and [LOS→NLOS→LOS implementation](docs/research/los-nlos-transition-implementation.md) control future O-RAN work. The old 160-cell G1 matrix and issue #25 are historical, not an instruction to execute. The new path is `configs/los-nlos-transition.json` → `experiment-scripts/prepare_los_nlos_transition.py` → `run_los_nlos_transition.py` → `analyze_los_nlos_transition.py`. Never invent numerical rates, bandwidth, NLOS transition times, k, or QoS policy; the JSON intentionally blocks execution until PI selection. Do not run legacy G1 sanity to claim transition validation. No unauthorized changes to scientific factors.
+
 # Agent contract — O-RAN research
 
 ## First: preserve repository parity
@@ -35,7 +37,7 @@ Repair a non-destructive environment problem rather than declaring scientific
 work blocked. Stop and ask only where preserving the research data cannot be
 guaranteed.
 
-## Execute sanity before expensive experiments
+## Legacy G1 sanity (historical only; NOT the new transition plan)
 
 After synchronization and while simulator processes are idle:
 
@@ -80,4 +82,4 @@ fixing routine failures without proliferating missions or approval gates.
 Maintain all directory README indexes whenever files move.
 Historical reports under [docs/history](docs/history/README.md) are evidence,
 not the current execution manual. [Issue #25](https://github.com/kirolossedra/oran-publication/issues/25)
-is the active Codex handoff; update it with actual measurements, not promises.
+is a superseded G1 Codex handoff; the governing direction is [issue #26](https://github.com/kirolossedra/oran-publication/issues/26).
