@@ -23,6 +23,8 @@ and generated reports are expected to exist locally without GitHub copies.
 
 The active engineering path is a **target-moving UE6 LOS→NLOS→LOS transition** with a matched all-LOS arm, competing UEs, and actual programmable O-RAN xApp RBG bounds. The design is detailed in [new transition implementation](docs/research/los-nlos-transition-implementation.md); [issue #26](https://github.com/kirolossedra/oran-publication/issues/26) governs PI scientific choices. High-throughput targets, final QoS semantics, transition timing, bandwidth and scheduler k are **not yet numerically selected**. The old 160-cell G1 campaign remains archived in-place for evidence and should not be executed as the new program.
 
+The [issue #26 prior-work, provenance, and run-readiness review](docs/research/los-nlos-prior-work-and-run-readiness.md) summarizes related literature and the decisions/evidence still needed.
+
 ```bash
 python experiment-scripts/run_los_nlos_transition.py --plan-only
 # After PI fills the required JSON values and WSL is provisioned:

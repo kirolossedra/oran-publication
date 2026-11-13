@@ -1,6 +1,7 @@
 # Research index
 
 - [**Current new LOS→NLOS→LOS source and scientific gates**](los-nlos-transition-implementation.md): dynamic condition, isolated runner, source control, xApp intervention, limitations
+- [Issue #26 prior-work, provenance, and run-readiness review](los-nlos-prior-work-and-run-readiness.md): primary literature, historical evidence boundaries, PI decisions, and execution gates
 - [PI governing research-direction issue #26](https://github.com/kirolossedra/oran-publication/issues/26): authoritative research reset
 
 ## Legacy G1 research records (not controlling the new plan)

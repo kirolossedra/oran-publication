@@ -2,6 +2,10 @@
 
 **Status:** COMPLETE for bounded issue scope. **Updated:** 2026-11-12. **Issue:** https://github.com/kirolossedra/oran-publication/issues/25.
 
+## Issue #26 read-only research review
+
+On 2026-11-13, `docs/research/los-nlos-prior-work-and-run-readiness.md` was added to record a primary-source literature scan, the documented channel/control map, historical evidence boundaries, and a run-readiness checklist. It links the current candidate JSON and implementation note and labels source-verified facts, literature observations, interpretation, and unverified work separately. It does not select scientific factors, run a build/test/simulation, or claim novel results. Root README, documentation index, research index, and mission ledger link to the report. Open numerical/policy choices remain a researcher gate.
+
 ## Checkout and preservation
 
 The fresh clone is /home/george/research/oran-publication at initial commit 7742cb78e741b4d9e6efa3b6d49c71e746df5433, equal to origin/main when cloned. The prior checkout remains intact at /home/george/oran-publication because the requested ~/research/oran-publication path was absent before recovery. The clone reuses ignored simulator/ns-3.48, simulator/runs, and simulator/logs via symlinks; tooling/activate.sh points to the pinned venv. No prior tracked file was overwritten by the clone. The previous 6.8 GB run and RA-ENG-007 diagnostics remain under their existing IDs.
