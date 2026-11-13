@@ -2,6 +2,8 @@
 
 **Status:** COMPLETE for the bounded scope of Issue #25. The PI's final operating-point choice and any 160-cell campaign remain gated. **Date:** 2026-11-12. **Issue:** https://github.com/kirolossedra/oran-publication/issues/25
 
+> **Historical engineering snapshot for PI review.** Issue #26 later states that the 50 Mbps/UE and 100 MHz direction was not PI-approved. The measurements below document what was run; they do not approve those settings as research factors or supersede the current LOS→NLOS→LOS direction.
+
 ## Objective and scope
 
 Recover the canonical O-RAN checkout without damaging the existing workspace, reconcile the pinned simulator with tracked ib-ORAN overrides, execute the issue's minimal high-throughput reliability calibration before the 20-cell sanity, then run bounded sanity only. Preserve old runs and keep new outputs uniquely versioned.

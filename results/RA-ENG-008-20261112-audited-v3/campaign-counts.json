@@ -1,0 +1,14 @@
+{
+  "planned_cells": 160,
+  "attempts": 167,
+  "successful_attempts": 160,
+  "failed_attempts": 7,
+  "measurement_complete_attempts": 160,
+  "successful_but_measurement_incomplete_attempts": 0,
+  "successful_cells": 160,
+  "cells_missing_complete_measurement": 0,
+  "per_run_ue_rows": 1920,
+  "per_run_grant_rows": 1920,
+  "per_run_demand_rows": 1920,
+  "load_calibration_rows": 64
+}

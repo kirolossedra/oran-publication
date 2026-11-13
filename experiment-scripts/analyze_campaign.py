@@ -50,12 +50,83 @@ def mean_sd_ci(values: list[float]):
     return mean, sd, mean - margin if margin is not None else None, mean + margin if margin is not None else None, len(values)
 
 
+def policy_channel_difference_in_differences(los_round_robin: float, los_topk: float,
+                                             nlos_round_robin: float, nlos_topk: float) -> float:
+    """Return (TopKCqi-RoundRobin) under UE6 NLOS minus the same effect under LOS."""
+    return (nlos_topk - nlos_round_robin) - (los_topk - los_round_robin)
+
+
+def build_policy_channel_interactions(ue_rows: list[dict], grant_rows: list[dict]):
+    """Create matched-seed policy-by-channel interaction rows and seed-level summaries."""
+    ue_lookup = {(r["channel"], r["mobility"], r["load"], r["policy"], int(r["seed"],),
+                  r["direction"], int(r["ue_index"])): r for r in ue_rows}
+    grant_lookup = {(r["channel"], r["mobility"], r["load"], r["policy"], int(r["seed"],),
+                     r["direction"], int(r["ue_index"])): r for r in grant_rows}
+    metrics = ("rx_goodput_bps", "pdr", "mean_latency_ms", "p95_latency_ms", "p99_latency_ms")
+    seed_rows = []
+    for mobility, load, seed, direction, ue in sorted({
+        (r["mobility"], r["load"], int(r["seed"]), r["direction"], int(r["ue_index"])) for r in ue_rows
+    }):
+        key = lambda channel, policy: (channel, mobility, load, policy, seed, direction, ue)
+        quartet = {name: ue_lookup.get(key(channel, policy))
+                   for name, channel, policy in (
+                       ("los_rr", "all-los", "RoundRobin"), ("los_topk", "all-los", "TopKCqi"),
+                       ("nlos_rr", "ue6-nlos", "RoundRobin"), ("nlos_topk", "ue6-nlos", "TopKCqi"))}
+        if any(row is None for row in quartet.values()):
+            continue
+        base = {"mobility": mobility, "load": load, "seed": seed, "direction": direction, "ue_index": ue,
+                "contrast": "(TopKCqi-RoundRobin)_UE6-NLOS - (TopKCqi-RoundRobin)_all-LOS"}
+        for metric in metrics:
+            values = {name: row.get(metric) for name, row in quartet.items()}
+            if any(value is None for value in values.values()):
+                continue
+            effect_los = float(values["los_topk"]) - float(values["los_rr"])
+            effect_nlos = float(values["nlos_topk"]) - float(values["nlos_rr"])
+            adequacy = "not-applicable"
+            if metric == "p99_latency_ms":
+                min_n = min(int(row["received_latency_n"]) for row in quartet.values())
+                adequacy = "adequate-by-1000-sample-rule" if min_n >= 1000 else "inadequate-by-1000-sample-rule"
+            seed_rows.append({**base, "metric": metric, "policy_effect_all_los": effect_los,
+                              "policy_effect_ue6_nlos": effect_nlos,
+                              "policy_effect_difference_in_differences": policy_channel_difference_in_differences(
+                                  float(values["los_rr"]), float(values["los_topk"]),
+                                  float(values["nlos_rr"]), float(values["nlos_topk"])),
+                              "p99_interaction_adequacy": adequacy})
+        grant_quartet = {name: grant_lookup.get(key(channel, policy))
+                         for name, channel, policy in (
+                             ("los_rr", "all-los", "RoundRobin"), ("los_topk", "all-los", "TopKCqi"),
+                             ("nlos_rr", "ue6-nlos", "RoundRobin"), ("nlos_topk", "ue6-nlos", "TopKCqi"))}
+        if all(row is not None for row in grant_quartet.values()):
+            values = {name: int(row["prb_symbols"]) for name, row in grant_quartet.items()}
+            effect_los = values["los_topk"] - values["los_rr"]
+            effect_nlos = values["nlos_topk"] - values["nlos_rr"]
+            seed_rows.append({**base, "metric": "prb_symbols",
+                              "policy_effect_all_los": effect_los,
+                              "policy_effect_ue6_nlos": effect_nlos,
+                              "policy_effect_difference_in_differences": effect_nlos - effect_los,
+                              "p99_interaction_adequacy": "not-applicable"})
+    grouped = {}
+    for row in seed_rows:
+        key = (row["mobility"], row["load"], row["direction"], row["ue_index"], row["metric"])
+        grouped.setdefault(key, []).append(row)
+    summaries = []
+    for key, rows in sorted(grouped.items()):
+        values = [float(row["policy_effect_difference_in_differences"]) for row in rows]
+        mean, sd, low, high, n = mean_sd_ci(values)
+        summaries.append({**dict(zip(("mobility", "load", "direction", "ue_index", "metric"), key)),
+                          "paired_seed_n": n, "mean_policy_effect_difference_in_differences": mean,
+                          "sd_across_seed_interactions": sd, "ci95_low": low, "ci95_high": high,
+                          "adequate_p99_seed_n": sum(row["p99_interaction_adequacy"] == "adequate-by-1000-sample-rule" for row in rows),
+                          "inadequate_p99_seed_n": sum(row["p99_interaction_adequacy"] == "inadequate-by-1000-sample-rule" for row in rows)})
+    return seed_rows, summaries
+
+
 def write_csv(path: Path, rows: list[dict], fieldnames: list[str] | None = None):
     path.parent.mkdir(parents=True, exist_ok=True)
     if not fieldnames:
         fieldnames = list(rows[0]) if rows else []
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -99,29 +170,43 @@ def main():
     audit, ue_rows, grant_rows, demand_rows = [], [], [], []
     expected_source_hashes = outcome_source_hashes()
     primary_attempt = {}
+    validation_reasons = {}
     for candidate in attempt_dirs:
         status = candidate / "exit-status.txt"
-        if not status.exists() or status.read_text().strip() != "0":
+        if not status.exists():
+            validation_reasons[candidate] = "missing exit-status.txt; interrupted or status unavailable"
+            continue
+        status_value = status.read_text().strip()
+        if status_value != "0":
+            validation_reasons[candidate] = f"process exit status {status_value}"
             continue
         try:
             metadata = json.loads((candidate / "run-metadata.json").read_text())
             if metadata.get("packet_measurement_schema") != "serialized-app-header-v1":
+                validation_reasons[candidate] = "packet measurement schema missing or unsupported"
                 continue
             if metadata.get("source_sha256") != expected_source_hashes:
+                validation_reasons[candidate] = "source SHA-256 differs from current campaign source"
                 continue  # do not pool old and corrected policy results
             if not (candidate / "logs/kpi.json").is_file():
+                validation_reasons[candidate] = "KPI output missing"
                 continue
             if not has_data_rows(candidate / "logs/packet-events.csv",
                                  {"event", "time_ns", "ue_index", "direction", "sequence", "tx_time_ns", "bytes"}):
+                validation_reasons[candidate] = "packet-event trace missing required header or data rows"
                 continue
             if not has_data_rows(candidate / "logs/mac-grants.csv",
                                  {"time_ns", "rnti", "direction", "rbg_count", "mcs"}):
+                validation_reasons[candidate] = "MAC-grant trace missing required header or data rows"
                 continue
             if not has_data_rows(candidate / "logs/mac-demand.csv",
                                  {"time_ns", "rnti", "direction", "buffer_bytes", "cqi"}):
+                validation_reasons[candidate] = "MAC-demand trace missing required header or data rows"
                 continue
-        except (OSError, ValueError, json.JSONDecodeError):
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            validation_reasons[candidate] = f"required metadata unreadable: {type(exc).__name__}: {exc}"
             continue
+        validation_reasons[candidate] = "valid complete attempt"
         cell_id = candidate.parent.name
         current = primary_attempt.get(cell_id)
         old_num = int(current.name.split("-", 1)[1]) if current else -1
@@ -176,13 +261,18 @@ def main():
             and has_data_rows(grants_path, {"time_ns", "rnti", "direction", "rbg_count", "mcs"})
             and has_data_rows(demand_file, {"time_ns", "rnti", "direction", "buffer_bytes", "cqi"}))
         selected_for_analysis = primary_attempt.get(attempt.parent.name) == attempt
+        reason = validation_reasons.get(attempt, "not considered for analysis")
+        exclusion_reason = "" if selected_for_analysis else (
+            "valid attempt superseded by a higher-numbered complete attempt"
+            if reason == "valid complete attempt" else reason)
         audit.append({**cell, "attempt": str(attempt.relative_to(ROOT)), "exit_status": status,
                       "has_kpi": kpi.exists(), "has_packet_events": packet_path.exists(),
                       "has_mac_grants": grants_path.exists(),
                       "has_mac_demand": (attempt / "logs/mac-demand.csv").exists(),
                       "successful": success, "matches_current_source": revision_match,
                       "measurement_complete": measurement_complete,
-                      "selected_for_analysis": selected_for_analysis})
+                      "selected_for_analysis": selected_for_analysis,
+                      "exclusion_reason": exclusion_reason})
         if not selected_for_analysis:
             continue
         meta = json.loads((attempt / "run-metadata.json").read_text())
@@ -207,8 +297,13 @@ def main():
             rnti = int(e["rnti"])
             if rnti:
                 rnti_to_ue[rnti] = ue
-            group = keyed.setdefault((ue, direction), {"TX": {}, "RX": {}, "rx_events": 0,
-                                                        "duplicates": 0, "reordered": 0})
+            group = keyed.setdefault((ue, direction), {"TX": {}, "RX": {}, "tx_events": 0,
+                                                        "rx_events": 0, "tx_duplicates": 0,
+                                                        "rx_duplicates": 0, "reordered": 0})
+            if e["event"] == "TX":
+                group["tx_events"] += 1
+                if seq in group["TX"]:
+                    group["tx_duplicates"] += 1
             if e["event"] == "RX":
                 group["rx_events"] += 1
                 k = (ue, direction)
@@ -216,7 +311,7 @@ def main():
                     group["reordered"] += 1
                 last_rx_sequence[k] = max(seq, last_rx_sequence.get(k, seq))
                 if seq in group["RX"]:
-                    group["duplicates"] += 1
+                    group["rx_duplicates"] += 1
             group[e["event"]].setdefault(seq, e)
         for (ue, direction), group in sorted(keyed.items()):
             tx, rx = group["TX"], group["RX"]
@@ -226,19 +321,26 @@ def main():
                     latencies.append((int(rec["time_ns"]) - int(tx[seq]["time_ns"])) / 1e6)
             tx_bytes = sum(int(x["bytes"]) for x in tx.values())
             rx_bytes = sum(int(x["bytes"]) for x in rx.values())
-            losses = max(0, len(tx) - len(rx))
+            matched_rx_packets = len(set(tx) & set(rx))
+            rx_without_tx = len(set(rx) - set(tx))
+            losses = len(set(tx) - set(rx))
             n = len(latencies)
             row = {
                 **cell, "ue_index": ue, "direction": direction,
                 "offered_bps_configured": per_ue_rates[direction][ue - 1] if len(per_ue_rates[direction]) >= ue else None,
-                "tx_packets": len(tx), "rx_unique_packets": len(set(rx)), "lost_or_unreceived_at_stop": losses,
-                "rx_events": group["rx_events"], "duplicate_rx_packets": group["duplicates"],
+                "tx_events": group["tx_events"], "tx_packets": len(tx),
+                "tx_duplicate_events": group["tx_duplicates"],
+                "rx_events": group["rx_events"], "rx_unique_packets": len(set(rx)),
+                "rx_duplicate_events": group["rx_duplicates"], "rx_without_matching_tx": rx_without_tx,
+                "matched_rx_packets": matched_rx_packets,
+                "lost_or_unreceived_at_stop": losses,
                 "reordered_rx_events": group["reordered"],
-                "pdr": len(set(rx)) / len(tx) if tx else None,
+                "pdr": matched_rx_packets / len(tx) if tx else None,
                 "tx_bytes": tx_bytes, "rx_bytes": rx_bytes,
                 "application_tx_rate_bps": tx_bytes * 8 / observation_s if observation_s > 0 else None,
                 "rx_goodput_bps": rx_bytes * 8 / observation_s if observation_s > 0 else None,
                 "received_latency_n": n,
+                "mean_latency_ms": statistics.mean(latencies) if latencies else None,
                 "p50_latency_ms": quantile(latencies, .50), "p95_latency_ms": quantile(latencies, .95),
                 "p99_latency_ms": quantile(latencies, .99),
                 "p99_sample_adequacy": "exploratory-small-n" if n < 1000 else "at-least-1000-received",
@@ -509,7 +611,7 @@ def main():
     seed_summary = []
     for key, rows in sorted(grouped.items(), key=lambda x: str(x[0])):
         base = dict(zip((*FACTORS, "direction", "ue_index"), key))
-        for metric in ("application_tx_rate_bps", "rx_goodput_bps", "pdr", "p50_latency_ms", "p95_latency_ms", "p99_latency_ms", "rx_unique_packets"):
+        for metric in ("application_tx_rate_bps", "rx_goodput_bps", "pdr", "mean_latency_ms", "p50_latency_ms", "p95_latency_ms", "p99_latency_ms", "rx_unique_packets"):
             vals = [float(r[metric]) for r in rows if r.get(metric) is not None]
             m, sd, lo, hi, n = mean_sd_ci(vals)
             base.update({f"{metric}_mean": m, f"{metric}_sd": sd,
@@ -560,6 +662,9 @@ def main():
                                               row["ue_index"], metric), []).append(row[f"{metric}_difference"])
             contrasts.append(row)
     write_csv(OUT / "paired-seed-contrasts.csv", contrasts)
+    interaction_seed_rows, interaction_summary = build_policy_channel_interactions(ue_rows, grant_rows)
+    write_csv(OUT / "policy-by-channel-interaction-by-seed.csv", interaction_seed_rows)
+    write_csv(OUT / "policy-by-channel-interaction-summary.csv", interaction_summary)
     paired_groups = {}
     for row in contrasts:
         grouping = (row["factor"], row["contrast"],
@@ -669,6 +774,110 @@ def main():
         ax.legend(frameon=False, ncol=2)
         fig.savefig(OUT / "figures" / "dl-resource-redistribution.png", dpi=300)
         plt.close(fig)
+
+        # All-UE P95 outcomes for a fixed stationary, contending load block.
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True, constrained_layout=True)
+        line_specs = [("all-los", "RoundRobin", "#2878B5", "-") ,
+                      ("all-los", "TopKCqi", "#2878B5", "--"),
+                      ("ue6-nlos", "RoundRobin", "#D95319", "-"),
+                      ("ue6-nlos", "TopKCqi", "#D95319", "--")]
+        for ax, direction in zip(axes, ("DL", "UL")):
+            for channel, policy, color, style in line_specs:
+                means, lows, highs = [], [], []
+                for ue in range(1, 7):
+                    values = [float(row["p95_latency_ms"]) for row in ue_rows
+                              if row["mobility"] == "stationary" and row["load"] == "contending"
+                              and row["channel"] == channel and row["policy"] == policy
+                              and row["direction"] == direction and int(row["ue_index"]) == ue
+                              and row["p95_latency_ms"] is not None]
+                    mean, _, low, high, n = mean_sd_ci(values)
+                    means.append(mean if mean is not None else float("nan"))
+                    lows.append(mean-low if n > 1 and low is not None else 0)
+                    highs.append(high-mean if n > 1 and high is not None else 0)
+                    if mean is not None:
+                        ax.annotate(f"n={n}", (ue, mean), xytext=(2, 4), textcoords="offset points",
+                                    fontsize=6, color=color)
+                ax.errorbar(range(1, 7), means, yerr=[lows, highs], marker="o", capsize=2,
+                            color=color, linestyle=style, label=f"{channel}, {policy}")
+            ax.set_title(f"{direction}; stationary, contending")
+            ax.set_xlabel("UE index")
+            ax.set_xticks(range(1, 7))
+            ax.grid(alpha=.25)
+        axes[0].set_yscale("log")
+        axes[0].set_ylabel("P95 received application delay (ms; log scale)")
+        axes[1].legend(frameon=False, fontsize=8)
+        fig.savefig(OUT / "figures" / "per-ue-p95-channel-policy.png", dpi=300)
+        plt.close(fig)
+
+        # Channel difference-in-differences of the matched TopKCqi-RoundRobin P95 effect.
+        interaction_path = OUT / "policy-by-channel-interaction-summary.csv"
+        interaction_rows = read_csv(interaction_path)
+        fig, axes = plt.subplots(2, 4, figsize=(15, 7), sharey="row", constrained_layout=True)
+        for row_index, direction in enumerate(("DL", "UL")):
+            for col_index, load in enumerate(("light", "contending", "dl-contending", "ul-contending")):
+                ax = axes[row_index][col_index]
+                selected = [row for row in interaction_rows
+                            if row["mobility"] == "stationary" and row["load"] == load
+                            and row["direction"] == direction and row["metric"] == "p95_latency_ms"]
+                selected.sort(key=lambda row: int(row["ue_index"]))
+                xs = [int(row["ue_index"]) for row in selected]
+                ys = [float(row["mean_policy_effect_difference_in_differences"]) for row in selected]
+                low = [y-float(row["ci95_low"]) for y, row in zip(ys, selected)]
+                high = [float(row["ci95_high"])-y for y, row in zip(ys, selected)]
+                ax.axhline(0, color="black", linewidth=.8)
+                ax.errorbar(xs, ys, yerr=[low, high], fmt="o", capsize=2, color="#5B4B8A")
+                for x, y, row in zip(xs, ys, selected):
+                    ax.annotate(f"n={row['paired_seed_n']}", (x, y), xytext=(2, 4),
+                                textcoords="offset points", fontsize=6)
+                ax.set_title(f"{direction}: {load}")
+                ax.set_xticks(range(1, 7))
+                ax.grid(alpha=.25)
+        axes[0][0].set_ylabel("NLOS policy effect − LOS policy effect\nP95 delay (ms)")
+        axes[1][0].set_ylabel("NLOS policy effect − LOS policy effect\nP95 delay (ms)")
+        fig.savefig(OUT / "figures" / "policy-channel-p95-interaction.png", dpi=300)
+        plt.close(fig)
+
+        # Trace CQI and MCS for the predetermined first-seed NLOS contention pilot cell.
+        representative_id = "ue6-nlos-stationary-contending-topkcqi-seed11"
+        representative = next((path for path in primary_attempt.values()
+                               if path.parent.name == representative_id), None)
+        if representative is not None:
+            rnti_to_ue = {}
+            for event in read_csv(representative / "logs/packet-events.csv"):
+                if event.get("rnti"):
+                    rnti_to_ue[int(event["rnti"])] = int(event["ue_index"])
+            cqi_bins, mcs_bins = {}, {}
+            for trace in read_csv(representative / "logs/mac-demand.csv"):
+                if trace.get("direction") == "0" and int(trace["rnti"]) in rnti_to_ue:
+                    ue = rnti_to_ue[int(trace["rnti"])]
+                    second = int(trace["time_ns"]) // 1_000_000_000
+                    cqi_bins.setdefault((ue, second), []).append(int(trace["cqi"]))
+            for trace in read_csv(representative / "logs/mac-grants.csv"):
+                if trace.get("direction") == "DL" and int(trace["rnti"]) in rnti_to_ue:
+                    ue = rnti_to_ue[int(trace["rnti"])]
+                    second = int(trace["time_ns"]) // 1_000_000_000
+                    mcs_bins.setdefault((ue, second), []).append(int(trace["mcs"]))
+            cqi_series, mcs_series = ({ue: ([], []) for ue in range(1, 7)},
+                                      {ue: ([], []) for ue in range(1, 7)})
+            for (ue, second), values in sorted(cqi_bins.items()):
+                cqi_series[ue][0].append(second + .5)
+                cqi_series[ue][1].append(statistics.median(values))
+            for (ue, second), values in sorted(mcs_bins.items()):
+                mcs_series[ue][0].append(second + .5)
+                mcs_series[ue][1].append(statistics.mean(values))
+            fig, axes = plt.subplots(2, 1, figsize=(10, 7), sharex=True, constrained_layout=True)
+            for ue in range(1, 7):
+                axes[0].plot(*cqi_series[ue], marker="o", markersize=3, linewidth=1, label=f"UE{ue}")
+                axes[1].plot(*mcs_series[ue], marker="o", markersize=3, linewidth=1, label=f"UE{ue}")
+            axes[0].set_ylabel("Median observed DL CQI / 1 s")
+            axes[1].set_ylabel("Mean observed DL grant MCS / 1 s")
+            axes[1].set_xlabel("Simulation time (s)")
+            axes[0].set_title(f"Observed CQI/MCS trace; {representative_id}")
+            axes[0].legend(frameon=False, ncol=6, fontsize=8)
+            for ax in axes:
+                ax.grid(alpha=.2)
+            fig.savefig(OUT / "figures" / "representative-cqi-mcs-trace.png", dpi=300)
+            plt.close(fig)
     except ImportError:
         (OUT / "PLOT-LIMITATION.txt").write_text("matplotlib unavailable; CSV data are complete, plots not generated.\n")
     result_hashes = sorted(p for p in OUT.rglob("*")
