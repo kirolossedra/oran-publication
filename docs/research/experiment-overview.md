@@ -10,10 +10,13 @@ required. One 5G-LENA gNB serves six UEs with `RoundRobin` versus greedy
 `TopKCqi` (`k=1`, xApp `Bypass`), both UL/DL measured per run.
 
 Design: 2 radio states (all LOS vs UE6 NLOS) × 2 mobility states
-(stationary vs controlled linear motion) × 4 loads
-(light, high both directions, DL-high, UL-high) × 2 policies ×
-5 paired seeds (11, 22, 33, 44, 55) = **160 cells**.
-See [exact configured values](../../configs/experiment.json).
+(stationary vs controlled linear motion) × 4 loads (1 Mbps/UE control,
+50 Mbps/UE bidirectional busy, DL-high, UL-high) × 2 policies ×
+5 paired seeds (11, 22, 33, 44, 55) = **160 planned cells**.
+Rates and the 100 MHz NR configuration are provisional pending the
+required one-seed 10/25/50/100 Mbps/UE all-LOS stationary calibration and
+PI review. See [exact configured values](../../configs/experiment.json)
+and [execution steps](../../experiment-scripts/README.md).
 
 **Scientific controls:** pair UE6 LOS/NLOS at matched
 seed/motion/load/policy, examine peer grant redistribution, measure

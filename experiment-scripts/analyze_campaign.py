@@ -90,7 +90,7 @@ def main():
     parser.add_argument("--campaign-root", type=Path, default=CAMPAIGN)
     parser.add_argument("--output-dir", type=Path, default=OUT)
     args = parser.parse_args()
-    CAMPAIGN = args.campaign_root.resolve()
+    CAMPAIGN = args.campaign_root.absolute()
     OUT = args.output_dir.resolve()
     if OUT.exists() and any(OUT.iterdir()):
         raise SystemExit(f"refusing to overwrite nonempty analysis output directory: {OUT}")

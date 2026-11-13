@@ -117,6 +117,26 @@ def pilot_block(cells: list[dict]) -> list[dict]:
     return selected
 
 
+def reliability_calibration_block() -> list[dict]:
+    """Four offered rates x two policies, one seed, stationary all-LOS."""
+    if "all-los" not in CHANNELS or "stationary" not in MOBILITIES:
+        raise RuntimeError("reliability calibration requires all-los and stationary factors")
+    selected = []
+    for rate_mbps in (10, 25, 50, 100):
+        for policy in POLICIES:
+            cell = {
+                "channel": "all-los", "mobility": "stationary",
+                "load": f"cal-{rate_mbps}mbps", "policy": policy,
+                "seed": SEEDS[0], "directions": ["DL", "UL"],
+                "calibration_rate_bps": rate_mbps * 1_000_000,
+                "cell_id": f"all-los-stationary-cal-{rate_mbps}mbps-{policy.lower()}-seed{SEEDS[0]:02d}",
+            }
+            selected.append(cell)
+    if len(selected) != 8:
+        raise RuntimeError(f"expected 8 reliability calibration cells, planned {len(selected)}")
+    return selected
+
+
 def sanity_block(cells: list[dict]) -> list[dict]:
     """One-seed 20-cell pilot: all load directions and a motion cross-check."""
     first_seed = SEEDS[0]
@@ -143,8 +163,11 @@ def write_once(path: Path, content: str) -> None:
 def attempt_config(base_cfg: dict, cell: dict, path: Path) -> dict:
     cfg = copy.deepcopy(base_cfg)
     common = cfg["common"]
-    offered = RATES[cell["load"]]
-    offered_dl, offered_ul = offered["DL"], offered["UL"]
+    if "calibration_rate_bps" in cell:
+        offered_dl = offered_ul = int(cell["calibration_rate_bps"])
+    else:
+        offered = RATES[cell["load"]]
+        offered_dl, offered_ul = offered["DL"], offered["UL"]
     common.update(
         {
             "simTime": SPEC["simulation"]["duration_s"],
@@ -177,6 +200,13 @@ def attempt_config(base_cfg: dict, cell: dict, path: Path) -> dict:
             "verbose": False,
         }
     )
+    radio = SPEC["radio"]
+    cfg["nr"].update({
+        "centralFrequency": radio["central_frequency_hz"],
+        "bandwidth": radio["bandwidth_hz"],
+        "numerology": radio["numerology"],
+        "tddPattern": radio["tdd_pattern"],
+    })
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(cfg, sort_keys=False))
     return cfg
@@ -221,14 +251,19 @@ def main() -> int:
         help="Run the predeclared first-seed 2x2x2 channel/load/policy block at stationary mobility",
     )
     parser.add_argument(
+        "--reliability-calibration", action="store_true",
+        help="Run eight one-seed all-LOS stationary rate/policy calibration cells before sanity",
+    )
+    parser.add_argument(
         "--sanity-block", action="store_true",
         help="Run a 20-cell, one-seed sanity matrix including high-throughput UL/DL arms and mobility",
     )
     parser.add_argument("--python", default=str(SIM / ".venv/bin/python"))
     parser.add_argument("--campaign-root", type=Path, default=RUNS)
     args = parser.parse_args()
-    if sum(bool(v) for v in (args.pilot_block, args.sanity_block, args.limit)) > 1:
-        parser.error("--sanity-block, --pilot-block and --limit are mutually exclusive")
+    if sum(bool(v) for v in (args.pilot_block, args.sanity_block,
+                              args.reliability_calibration, args.limit)) > 1:
+        parser.error("--reliability-calibration, --sanity-block, --pilot-block and --limit are mutually exclusive")
     campaign_root = args.campaign_root.resolve()
     campaign_root.mkdir(parents=True, exist_ok=True)
     base_copy = campaign_root / "frozen-base-config.yaml"
@@ -260,7 +295,16 @@ def main() -> int:
             },
         }, indent=2) + "\n")
     manifest = campaign_root / "attempts.jsonl"
-    if args.sanity_block:
+    if args.reliability_calibration:
+        work = reliability_calibration_block()
+        write_once(campaign_root / "reliability-calibration-selection.json", json.dumps({
+            "purpose": "one-seed engineering capacity/reliability calibration; not final rate selection",
+            "seed": SEEDS[0], "channel": "all-los", "mobility": "stationary",
+            "policies": list(POLICIES), "offered_mbps_per_ue_per_direction": [10, 25, 50, 100],
+            "directions_measured_together": ["DL", "UL"],
+            "cell_ids": [cell["cell_id"] for cell in work],
+        }, indent=2) + "\n")
+    elif args.sanity_block:
         work = sanity_block(cells)
         write_once(campaign_root / "sanity-block-selection.json", json.dumps({
             "purpose": "diagnostic_only_not_formal_inference",

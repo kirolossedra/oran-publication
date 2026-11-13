@@ -392,6 +392,8 @@ def main() -> int:
     parser.add_argument("--jobs", type=int, default=2, help="Parallel ns-3 build jobs")
     parser.add_argument("--skip-build", action="store_true",
                         help="Only for reuse of already-verified simulator build")
+    parser.add_argument("--calibration-analysis-dir", type=Path,
+                        help="Reuse a completed calibration analysis and resume the 20-cell sanity without rerunning calibration")
     args = parser.parse_args()
     if args.jobs < 1:
         parser.error("--jobs must be positive")
@@ -399,9 +401,21 @@ def main() -> int:
         parser.error("Pinned ns-3 checkout or Python venv missing; follow bootstrap first")
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-{os.getpid()}"
+    calibration_campaign = ROOT / "simulator/runs" / (SPEC["campaign_id"] + "-calibration") / stamp
+    calibration_results = (args.calibration_analysis_dir.absolute() if args.calibration_analysis_dir
+                           else ROOT / "results" / (SPEC["campaign_id"] + "-calibration") / stamp)
     campaign = ROOT / "simulator/runs" / (SPEC["campaign_id"] + "-sanity") / stamp
     results = ROOT / "results" / (SPEC["campaign_id"] + "-sanity") / stamp
     campaign.mkdir(parents=True, exist_ok=False)
+    if args.calibration_analysis_dir:
+        required = ("reliability-calibration-report.md", "reliability-calibration-per-ue.csv",
+                    "reliability-calibration-summary.csv")
+        if not all((calibration_results / name).is_file() for name in required):
+            parser.error(f"calibration analysis is incomplete: {calibration_results}")
+        print(f"Reusing verified calibration analysis: {calibration_results}", flush=True)
+    else:
+        print(f"Calibration raw output: {calibration_campaign}", flush=True)
+        print(f"Calibration analysis output: {calibration_results}", flush=True)
     print(f"Sanity raw output: {campaign}", flush=True)
     print(f"Sanity analysis output: {results}", flush=True)
 
@@ -413,6 +427,17 @@ def main() -> int:
     if not args.skip_build:
         run_step("Build required NR simulation target",
                  ["./ns3", "build", "ns3iboran_nr", "-j", str(args.jobs)], SIM)
+    if not args.calibration_analysis_dir:
+        run_step("Run eight-cell all-LOS stationary high-throughput calibration",
+                 [sys.executable, str(RUN_SCRIPT), "--reliability-calibration",
+                  "--python", str(SIM / ".venv/bin/python"),
+                  "--campaign-root", str(calibration_campaign)], ROOT)
+        run_step("Analyze calibration packet, grant and queue measurements",
+                 [sys.executable, str(ANALYZE_SCRIPT), "--campaign-root", str(calibration_campaign),
+                  "--output-dir", str(calibration_results)], ROOT)
+        run_step("Write rate/reliability calibration report",
+                 [sys.executable, str(ROOT / "experiment-scripts/analyze_reliability_calibration.py"),
+                  "--analysis-dir", str(calibration_results)], ROOT)
     run_step("Run bounded, 20-cell sanity matrix with tqdm",
              [sys.executable, str(RUN_SCRIPT), "--sanity-block",
               "--python", str(SIM / ".venv/bin/python"),
